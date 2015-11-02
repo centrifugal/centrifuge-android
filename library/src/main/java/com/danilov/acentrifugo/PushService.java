@@ -26,7 +26,7 @@ import java.util.UUID;
  * Service for handling downstream messages from centrifugo.
  * Pass user id, token and token's timestamp from your web application
  * and user will be able to receive messages
- * {@see <a href="https://fzambia.gitbooks.io/centrifugal/content/">Centrifugo docs</a>}
+ * @see <a href="https://fzambia.gitbooks.io/centrifugal/content/">Centrifugo docs</a>
  */
 public class PushService extends Service {
 
@@ -110,7 +110,7 @@ public class PushService extends Service {
 
     /**
      * Starts push-listener service with given host, userId, token and token's timestamp
-     * channel must be placed in string resources with id {@link com.danilov.acentrifugo.R.string#centrifugo_channel}
+     * channel must be placed in string resources with id string#centrifugo_channel
      * @param context service starter
      * @param host your centrifugo's host (e.g. "ws://127.0.0.1:8000/connection/websocket"
      * @param userId id of the user, passed from web application
@@ -128,8 +128,8 @@ public class PushService extends Service {
     /**
      * Starts push-listener service with given userId, token and token's timestamp
      * host and channel must be placed in string resources with ids
-     * {@link com.danilov.acentrifugo.R.string#centrifugo_host} for host
-     * {@link com.danilov.acentrifugo.R.string#centrifugo_channel} for channel
+     * string#centrifugo_host for host
+     * string#centrifugo_channel for channel
      * @param context service starter
      * @param userId id of the user, passed from web application
      * @param token user's token, passed from web application
@@ -166,7 +166,7 @@ public class PushService extends Service {
      * Derive this class and override this method to add custom fields to JSON object
      * @param handshakeData information about WebSocket handshake
      * @param jsonObject connection message
-     * @throws JSONException
+     * @throws JSONException thrown to indicate a problem with the JSON API
      */
     protected void fillConnectionJSON(final Handshakedata handshakeData, final JSONObject jsonObject) throws JSONException {
         jsonObject.put("uid", UUID.randomUUID().toString());
@@ -257,7 +257,7 @@ public class PushService extends Service {
      * Fills JSON with subscription info
      * Derive this class and override this method to add custom fields to JSON object
      * @param jsonObject subscription message
-     * @throws JSONException
+     * @throws JSONException thrown to indicate a problem with the JSON API
      */
     protected void fillSubscriptionJSON(final JSONObject jsonObject) throws JSONException {
         jsonObject.put("uid", UUID.randomUUID().toString());
