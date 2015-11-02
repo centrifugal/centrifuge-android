@@ -3,14 +3,15 @@ package com.danilov.acentrifugo;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Handler;
 import android.os.IBinder;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft;
 import org.java_websocket.drafts.Draft_17;
+import org.java_websocket.handshake.Handshakedata;
 import org.java_websocket.handshake.ServerHandshake;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -21,22 +22,48 @@ import java.net.URI;
 import java.util.UUID;
 
 /**
- * Created by semyon on 29.10.15.
+ * Created by sammyvimes on 29.10.15.
+ * Service for handling downstream messages from centrifugo.
+ * Pass user id, token and token's timestamp from your web application
+ * and user will be able to receive messages
+ * {@see <a href="https://fzambia.gitbooks.io/centrifugal/content/">Centrifugo docs</a>}
  */
-public class PushService extends Service implements IPushService {
+public class PushService extends Service {
 
+    /**
+     * Key for intent's extra for host
+     */
     public static final String HOST_EXTRA = "host";
-    public static final String USERID_EXTRA = "userId";
-    public static final String TOKEN_TIMESTAMP_EXTRA = "tokenTimestamp";
-    public static final String TOKEN_EXTRA = "token";
+
+    /**
+     * Key for intent's extra for channel
+     */
     public static final String CHANNEL_EXTRA = "channel";
 
-    private Handler handler = new Handler();
+    /**
+     * Key for intent's extra for user id
+     */
+    public static final String USERID_EXTRA = "userId";
+
+    /**
+     * Key for intent's extra for token
+     */
+    public static final String TOKEN_EXTRA = "token";
+
+    /**
+     * Key for intent's extra for token timestamp
+     */
+    public static final String TOKEN_TIMESTAMP_EXTRA = "tokenTimestamp";
+
 
     private String host;
+
     private String userId;
+
     private String tokenTimestamp;
+
     private String token;
+
     private String channel;
 
     private PushClient client;
@@ -55,47 +82,108 @@ public class PushService extends Service implements IPushService {
         return START_STICKY;
     }
 
-    public static void start(final Context context, final String host, final String userId, final String tokenTimestamp, final String token, final String channel) {
+    /**
+     * Starts push-listener service with given host,channel, userId, token and token's timestamp
+     * @param context service starter
+     * @param channel channel, which you want to subscribe this user
+     * @param host your centrifugo's host (e.g. "ws://127.0.0.1:8000/connection/websocket"
+     * @param userId id of the user, passed from web application
+     * @param token user's token, passed from web application
+     * @param tokenTimestamp token's timestamp, passed from web application
+     */
+    public static void start(@NonNull final Context context,
+                             @NonNull final String host,
+                             @NonNull final String channel,
+                             @NonNull final String userId,
+                             @NonNull final String token,
+                             @NonNull final String tokenTimestamp) {
         Intent intent = new Intent(context, PushService.class);
         intent.putExtra(HOST_EXTRA, host);
+        intent.putExtra(CHANNEL_EXTRA, channel);
+        intent.putExtra(USERID_EXTRA, userId);
         intent.putExtra(TOKEN_EXTRA, token);
         intent.putExtra(TOKEN_TIMESTAMP_EXTRA, tokenTimestamp);
-        intent.putExtra(USERID_EXTRA, userId);
-        intent.putExtra(CHANNEL_EXTRA, channel);
         context.startService(intent);
     }
 
-    @Override
-    public void onOpen(final ServerHandshake handshakedata) {
-        //sending connect
+    /**
+     * Starts push-listener service with given host, userId, token and token's timestamp
+     * channel must be placed in string resources with id {@link com.danilov.acentrifugo.R.string#centrifugo_channel}
+     * @param context service starter
+     * @param host your centrifugo's host (e.g. "ws://127.0.0.1:8000/connection/websocket"
+     * @param userId id of the user, passed from web application
+     * @param token user's token, passed from web application
+     * @param tokenTimestamp token's timestamp, passed from web application
+     */
+    public static void start(@NonNull final Context context,
+                             @NonNull final String host,
+                             @NonNull final String userId,
+                             @NonNull final String token,
+                             @NonNull final String tokenTimestamp) {
+        start(context, host, context.getString(R.string.centrifugo_channel), userId, token, tokenTimestamp);
+    }
+
+    /**
+     * Starts push-listener service with given userId, token and token's timestamp
+     * host and channel must be placed in string resources with ids
+     * {@link com.danilov.acentrifugo.R.string#centrifugo_host} for host
+     * {@link com.danilov.acentrifugo.R.string#centrifugo_channel} for channel
+     * @param context service starter
+     * @param userId id of the user, passed from web application
+     * @param token user's token, passed from web application
+     * @param tokenTimestamp token's timestamp, passed from web application
+     */
+    public static void start(@NonNull final Context context,
+                             @NonNull final String userId,
+                             @NonNull final String token,
+                             @NonNull final String tokenTimestamp) {
+        start(context, context.getString(R.string.centrifugo_host), userId, token, tokenTimestamp);
+    }
+
+
+    /**
+     * WebSocket connection successful opening handler
+     * You don't need to override this method, unless you want to change
+     * client's behaviour before connection
+     * @param handshakeData information about WebSocket handshake
+     */
+    protected void onOpen(final ServerHandshake handshakeData) {
         try {
             JSONObject jsonObject = new JSONObject();
-            jsonObject.put("uid", UUID.randomUUID().toString());
-            jsonObject.put("method", "connect");
-
-            JSONObject params = new JSONObject();
-            params.put("user", userId);
-            params.put("timestamp", tokenTimestamp);
-            params.put("info", "");
-            params.put("token", token);
-            jsonObject.put("params", params);
-
+            fillConnectionJSON(handshakeData, jsonObject);
             JSONArray messages = new JSONArray();
             messages.put(jsonObject);
-
             client.send(messages.toString());
-
         } catch (JSONException e) {
-
+            onError("during connection", e);
         }
     }
 
-    public void onConnected() {
+    /**
+     * Fills JSON with connection to centrifugo info
+     * Derive this class and override this method to add custom fields to JSON object
+     * @param handshakeData information about WebSocket handshake
+     * @param jsonObject connection message
+     * @throws JSONException
+     */
+    protected void fillConnectionJSON(final Handshakedata handshakeData, final JSONObject jsonObject) throws JSONException {
+        jsonObject.put("uid", UUID.randomUUID().toString());
+        jsonObject.put("method", "connect");
 
+        JSONObject params = new JSONObject();
+        params.put("user", userId);
+        params.put("timestamp", tokenTimestamp);
+        params.put("info", "");
+        params.put("token", token);
+        jsonObject.put("params", params);
     }
 
-    @Override
-    public void onMessage(final String message) {
+    /**
+     * Internal handler of message from WebSocket, which can be either
+     * JSONObject and JSONArray
+     * @param message string frame
+     */
+    private void onMessage(final String message) {
         Log.d("PUSH", "Message from fugo: " + message);
         try {
             Object object = new JSONTokener(message).nextValue();
@@ -110,56 +198,91 @@ public class PushService extends Service implements IPushService {
                 }
             }
         } catch (JSONException e) {
-            onError(e);
+            onError("during message handling", e);
         }
     }
 
-    private void onMessage(final JSONObject jsonObject) {
-        String method = jsonObject.optString("method", "");
+    /**
+     * Handler for messages, that does the routine of subscribing
+     * and sending messages in the broadcasts
+     * Only apps with permission YOUR_PACKAGE_ID.permission.CENTRIFUGO_PUSH
+     * (e.g. com.example.testapp.permission.CENTRIFUGO_PUSH)
+     * signed with your developer key can receive your push
+     * Filter for broadcasts must be YOUR_PACKAGE_ID.action.CENTRIFUGO_PUSH
+     * (e.g. com.example.testapp.action.CENTRIFUGO_PUSH)
+     * You don't need to override this method, unless you want to change
+     * client's behaviour after connection and before subscription
+     * @param message message to handle
+     */
+    protected void onMessage(@NonNull final JSONObject message) {
+        String method = message.optString("method", "");
         if (method.equals("connect")) {
             subscribe();
             return;
         }
         if (method.equals("subscribe")) {
-            //TODO: check subscription success
+            String subscriptionError = getSubscriptionError(message);
+            if (subscriptionError != null) {
+                onSubscriptionError(subscriptionError);
+            }
             return;
         }
-        JSONObject body = jsonObject.optJSONObject("body");
+        JSONObject body = message.optJSONObject("body");
         String packageName = getPackageName();
         Intent intent = new Intent(packageName + ".action.CENTRIFUGO_PUSH");
         intent.putExtra("body", body.toString());
         sendBroadcast(intent, packageName + ".permission.CENTRIFUGO_PUSH");
     }
 
+    /**
+     * Subscribing to channel
+     */
     private void subscribe() {
-        //sending connect
         try {
             JSONObject jsonObject = new JSONObject();
-            jsonObject.put("uid", UUID.randomUUID().toString());
-            jsonObject.put("method", "subscribe");
-
-            JSONObject params = new JSONObject();
-            params.put("channel", channel);
-            jsonObject.put("params", params);
+            fillSubscriptionJSON(jsonObject);
 
             JSONArray messages = new JSONArray();
             messages.put(jsonObject);
 
             client.send(messages.toString());
-
         } catch (JSONException e) {
-            onError(e);
+            onError("during subscription", e);
         }
     }
 
-    @Override
+    /**
+     * Fills JSON with subscription info
+     * Derive this class and override this method to add custom fields to JSON object
+     * @param jsonObject subscription message
+     * @throws JSONException
+     */
+    protected void fillSubscriptionJSON(final JSONObject jsonObject) throws JSONException {
+        jsonObject.put("uid", UUID.randomUUID().toString());
+        jsonObject.put("method", "subscribe");
+        JSONObject params = new JSONObject();
+        params.put("channel", channel);
+        jsonObject.put("params", params);
+    }
+
+    protected String getSubscriptionError(final JSONObject message) {
+        return null;
+    }
+
     public void onClose(final int code, final String reason, final boolean remote) {
         Log.d("PUSH", "onClose: " + code + ", " + reason + ", " + remote);
     }
 
-    @Override
+    public void onError(final String when, final Exception ex) {
+        Log.e("PUSH", "Error occured  " + when +  ": ", ex);
+    }
+
     public void onError(final Exception ex) {
         Log.e("PUSH", "onError: ", ex);
+    }
+
+    public void onSubscriptionError(@NonNull final String subscriptionError) {
+        Log.e("PUSH", "subscription error: " + subscriptionError);
     }
 
     private class PushClient extends WebSocketClient {
@@ -168,28 +291,7 @@ public class PushService extends Service implements IPushService {
 
         public PushClient(final URI serverURI, final Draft draft) {
             super(serverURI, draft);
-            clientThread = new Thread() {
-                @Override
-                public void run() {
-                    String error = "";
-                    try {
-                        boolean success = connectBlocking();
-                        if (success) {
-                            handler.post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    onConnected();
-                                }
-                            });
-                            return;
-                        }
-                        error = "Unknow error";
-                    } catch (InterruptedException e) {
-                        error = e.getMessage();
-                    }
-                    Log.e("PUSH", "Error while connecting: " + error);
-                }
-            };
+            clientThread = new Thread(this);
         }
 
         @Override
