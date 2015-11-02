@@ -30,28 +30,30 @@ import java.util.UUID;
  */
 public class PushService extends Service {
 
+    private static final String TAG = "ACentrifugoPushService";
+
     /**
-     * Key for intent's extra for host
+     * Key for intent's host value
      */
     public static final String HOST_EXTRA = "host";
 
     /**
-     * Key for intent's extra for channel
+     * Key for intent's channel value
      */
     public static final String CHANNEL_EXTRA = "channel";
 
     /**
-     * Key for intent's extra for user id
+     * Key for intent's user id value
      */
     public static final String USERID_EXTRA = "userId";
 
     /**
-     * Key for intent's extra for token
+     * Key for intent's token  value
      */
     public static final String TOKEN_EXTRA = "token";
 
     /**
-     * Key for intent's extra for token timestamp
+     * Key for intent's token timestamp  value
      */
     public static final String TOKEN_TIMESTAMP_EXTRA = "tokenTimestamp";
 
@@ -270,19 +272,19 @@ public class PushService extends Service {
     }
 
     public void onClose(final int code, final String reason, final boolean remote) {
-        Log.d("PUSH", "onClose: " + code + ", " + reason + ", " + remote);
+        Log.d(TAG, "onClose: " + code + ", " + reason + ", " + remote);
     }
 
     public void onError(final String when, final Exception ex) {
-        Log.e("PUSH", "Error occured  " + when +  ": ", ex);
+        Log.e(TAG, "Error occured  " + when +  ": ", ex);
     }
 
     public void onError(final Exception ex) {
-        Log.e("PUSH", "onError: ", ex);
+        Log.e(TAG, "onError: ", ex);
     }
 
     public void onSubscriptionError(@NonNull final String subscriptionError) {
-        Log.e("PUSH", "subscription error: " + subscriptionError);
+        Log.e(TAG, "subscription error: " + subscriptionError);
     }
 
     private class PushClient extends WebSocketClient {
