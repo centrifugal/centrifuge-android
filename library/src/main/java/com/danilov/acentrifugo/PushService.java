@@ -31,6 +31,7 @@ import java.util.UUID;
 public class PushService extends Service {
 
     private static final String TAG = "ACentrifugoPushService";
+    private static final String PRIVATE_CHANNEL_PREFIX = "$";
 
     /**
      * Key for intent's host value
@@ -53,6 +54,11 @@ public class PushService extends Service {
     public static final String TOKEN_EXTRA = "token";
 
     /**
+     * Key for intent's token  value
+     */
+    public static final String CHANNEL_TOKEN_EXTRA = "channelToken";
+
+    /**
      * Key for intent's token timestamp  value
      */
     public static final String TOKEN_TIMESTAMP_EXTRA = "tokenTimestamp";
@@ -68,6 +74,8 @@ public class PushService extends Service {
 
     private String channel;
 
+    private String channelToken;
+
     private PushClient client;
 
     @Override
@@ -79,7 +87,7 @@ public class PushService extends Service {
             tokenTimestamp = intent.getStringExtra(TOKEN_TIMESTAMP_EXTRA);
             token = intent.getStringExtra(TOKEN_EXTRA);
             channel = intent.getStringExtra(CHANNEL_EXTRA);
-
+            channelToken = intent.getStringExtra(CHANNEL_TOKEN_EXTRA);
             client = new PushClient(URI.create(host), new Draft_17());
             client.start();
             return START_STICKY;
@@ -91,6 +99,7 @@ public class PushService extends Service {
      * Starts push-listener service with given host,channel, userId, token and token's timestamp
      * @param context service starter
      * @param channel channel, which you want to subscribe this user
+     * @param channelToken token of a private channel (if not private simply pass null)
      * @param host your centrifugo's host (e.g. "ws://127.0.0.1:8000/connection/websocket"
      * @param userId id of the user, passed from web application
      * @param token user's token, passed from web application
@@ -99,6 +108,7 @@ public class PushService extends Service {
     public static void start(@NonNull final Context context,
                              @NonNull final String host,
                              @NonNull final String channel,
+                             @Nullable final String channelToken,
                              @NonNull final String userId,
                              @NonNull final String token,
                              @NonNull final String tokenTimestamp) {
@@ -107,6 +117,7 @@ public class PushService extends Service {
         intent.putExtra(CHANNEL_EXTRA, channel);
         intent.putExtra(USERID_EXTRA, userId);
         intent.putExtra(TOKEN_EXTRA, token);
+        intent.putExtra(CHANNEL_TOKEN_EXTRA, channelToken);
         intent.putExtra(TOKEN_TIMESTAMP_EXTRA, tokenTimestamp);
         context.startService(intent);
     }
@@ -125,7 +136,7 @@ public class PushService extends Service {
                              @NonNull final String userId,
                              @NonNull final String token,
                              @NonNull final String tokenTimestamp) {
-        start(context, host, context.getString(R.string.centrifugo_channel), userId, token, tokenTimestamp);
+        start(context, host, context.getString(R.string.centrifugo_channel), null, userId, token, tokenTimestamp);
     }
 
     /**
@@ -267,6 +278,11 @@ public class PushService extends Service {
         jsonObject.put("method", "subscribe");
         JSONObject params = new JSONObject();
         params.put("channel", channel);
+        if (channel.startsWith(PRIVATE_CHANNEL_PREFIX)) {
+            params.put("sign", channelToken);
+            params.put("client", userId); //FIXME: здесь должен быть client id который получается из респонса о connect'е
+            params.put("info", "");
+        }
         jsonObject.put("params", params);
     }
 
