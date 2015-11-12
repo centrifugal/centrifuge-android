@@ -73,15 +73,18 @@ public class PushService extends Service {
     @Override
     public int onStartCommand(final Intent intent, final int flags, final int startId) {
         super.onStartCommand(intent, flags, startId);
-        host = intent.getStringExtra(HOST_EXTRA);
-        userId = intent.getStringExtra(USERID_EXTRA);
-        tokenTimestamp = intent.getStringExtra(TOKEN_TIMESTAMP_EXTRA);
-        token = intent.getStringExtra(TOKEN_EXTRA);
-        channel = intent.getStringExtra(CHANNEL_EXTRA);
+        if (intent != null) {
+            host = intent.getStringExtra(HOST_EXTRA);
+            userId = intent.getStringExtra(USERID_EXTRA);
+            tokenTimestamp = intent.getStringExtra(TOKEN_TIMESTAMP_EXTRA);
+            token = intent.getStringExtra(TOKEN_EXTRA);
+            channel = intent.getStringExtra(CHANNEL_EXTRA);
 
-        client = new PushClient(URI.create(host), new Draft_17());
-        client.start();
-        return START_STICKY;
+            client = new PushClient(URI.create(host), new Draft_17());
+            client.start();
+            return START_STICKY;
+        }
+        return START_NOT_STICKY;
     }
 
     /**
@@ -309,11 +312,23 @@ public class PushService extends Service {
         @Override
         public void onClose(final int code, final String reason, final boolean remote) {
             PushService.this.onClose(code, reason, remote);
+            try {
+                this.closeBlocking();
+                clientThread.interrupt();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
 
         @Override
         public void onError(final Exception ex) {
             PushService.this.onError(ex);
+            try {
+                this.closeBlocking();
+                clientThread.interrupt();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
 
         public void start() {
