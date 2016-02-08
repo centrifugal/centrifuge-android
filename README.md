@@ -10,7 +10,7 @@ maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
 to <b>repositories</b>
 and 
 ```
-compile 'com.github.sammyvimes:acentrifugo:0.32-SNAPSHOT'
+compile 'com.github.sammyvimes:acentrifugo:0.35-SNAPSHOT'
 ```
 to <b>dependencies</b> in your <b>build.gradle</b>    
 
