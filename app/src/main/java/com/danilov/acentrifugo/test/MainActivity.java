@@ -27,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
         String ts = sharedPreferences.getLong("PUSH_TIMESTAMP", 0) + "";
         String channel = context.getString(R.string.centrifugo_channel) + pi;
         if (!"".equals(pi)) {
-            PushService.start(context, context.getString(R.string.centrifugo_host), channel, null, pi, token, ts);
+            PushService.subscribe(context, context.getString(R.string.centrifugo_host), channel, null, pi, token, ts);
         }
 
     }

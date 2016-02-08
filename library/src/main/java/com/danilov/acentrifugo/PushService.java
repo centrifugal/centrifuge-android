@@ -10,6 +10,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 import android.util.Log;
 
 import org.java_websocket.client.WebSocketClient;
@@ -90,16 +91,14 @@ public class PushService extends Service {
 
     private String token;
 
-    private String channel;
-
-    private String channelToken;
-
     private PushClient client;
 
     private HandlerThread messageThread = null;
     private Handler messageHandler = null;
 
     private int state = STATE_NOT_CONNECTED;
+
+    private List<String> subscribedChannels = new ArrayList<>();
 
     private List<SubscribeMessage> channelsToSubscribe = new ArrayList<>();
 
@@ -118,22 +117,29 @@ public class PushService extends Service {
                     synchronized (handlerMonitor) {
                         messageHandler = new MessageHandler(messageThread.getLooper());
                         hasHandler = true;
-                    }
-                    for (Message message : pendingMessages) {
-                        messageHandler.sendMessage(message);
+                        //sending all pending messages and removing them
+                        for (Message message : pendingMessages) {
+                            messageHandler.sendMessage(message);
+                        }
+                        pendingMessages.clear();
                     }
                 }
             });
+            messageThread.start();
         }
 
         if (intent == null) {
             return START_NOT_STICKY;
         }
 
-        host = intent.getStringExtra(HOST_EXTRA);
-        userId = intent.getStringExtra(USERID_EXTRA);
-        tokenTimestamp = intent.getStringExtra(TOKEN_TIMESTAMP_EXTRA);
-        token = intent.getStringExtra(TOKEN_EXTRA);
+        if (host != null) {
+            //filling this info only once
+            //connection to multiple host not intended to be supported
+            host = intent.getStringExtra(HOST_EXTRA);
+            userId = intent.getStringExtra(USERID_EXTRA);
+            tokenTimestamp = intent.getStringExtra(TOKEN_TIMESTAMP_EXTRA);
+            token = intent.getStringExtra(TOKEN_EXTRA);
+        }
 
         String channel = intent.getStringExtra(CHANNEL_EXTRA);
         String channelToken = intent.getStringExtra(CHANNEL_TOKEN_EXTRA);
@@ -143,7 +149,10 @@ public class PushService extends Service {
         if (!hasHandler) {
             synchronized (handlerMonitor) {
                 if (!hasHandler) {
+                    //queuing messages for the time we got handler
                     pendingMessages.add(message);
+                } else {
+                    messageHandler.sendMessage(message);
                 }
             }
         } else {
@@ -253,30 +262,6 @@ public class PushService extends Service {
     }
 
     /**
-     * Internal handler of message from WebSocket, which can be either
-     * JSONObject and JSONArray
-     * @param message string frame
-     */
-    private void onMessage(final String message) {
-        Log.d("PUSH", "Message from fugo: " + message);
-        try {
-            Object object = new JSONTokener(message).nextValue();
-            if (object instanceof JSONObject) {
-                JSONObject messageObj = (JSONObject) object;
-                onMessage(messageObj);
-            } else if (object instanceof JSONArray) {
-                JSONArray messageArray = new JSONArray(message);
-                for (int i = 0; i < messageArray.length(); i++) {
-                    JSONObject messageObj = messageArray.optJSONObject(i);
-                    onMessage(messageObj);
-                }
-            }
-        } catch (JSONException e) {
-            logErrorWhen("during message handling", e);
-        }
-    }
-
-    /**
      * Handler for messages, that does the routine of subscribing
      * and sending messages in the broadcasts
      * Only apps with permission YOUR_PACKAGE_ID.permission.CENTRIFUGO_PUSH
@@ -293,48 +278,58 @@ public class PushService extends Service {
         if (method.equals("connect")) {
             JSONObject body = message.optJSONObject("body");
             if (body != null) {
-                this.clientId = body.optString("client");
+                PushService.this.clientId = body.optString("client");
             }
-            subscribe();
+            PushService.this.state = STATE_CONNECTED;
+            sendSystemBroadcast(new Info(Info.CONNECTED, ""));
+            for (SubscribeMessage subscribeMessage : channelsToSubscribe) {
+                subscribe(subscribeMessage);
+            }
+            channelsToSubscribe.clear();
             return;
         }
         if (method.equals("subscribe")) {
             String subscriptionError = getSubscriptionError(message);
             if (subscriptionError != null) {
                 onSubscriptionError(subscriptionError);
+                return;
+            }
+            JSONObject body = message.optJSONObject("body");
+            if (body != null) {
+                String channelName = body.optString("channel");
+                Boolean status = body.optBoolean("status");
+                if (status) {
+                    subscribedChannels.add(channelName);
+                    sendSystemBroadcast(new Info(Info.SUBSCRIBED_TO_CHANNEL, channelName));
+                }
             }
             return;
         }
         JSONObject body = message.optJSONObject("body");
+        sendBroadcast(body.toString());
+    }
+
+    private void sendBroadcast(final String message) {
         String packageName = getPackageName();
         Intent intent = new Intent(packageName + ".action.CENTRIFUGO_PUSH");
-        intent.putExtra("body", body.toString());
+        intent.putExtra("body", message);
+        sendBroadcast(intent, packageName + ".permission.CENTRIFUGO_PUSH");
+    }
+
+    private void sendSystemBroadcast(final Info info) {
+        String packageName = getPackageName();
+        Intent intent = new Intent(packageName + ".action.CENTRIFUGO_PUSH");
+        intent.putExtra("info", info);
         sendBroadcast(intent, packageName + ".permission.CENTRIFUGO_PUSH");
     }
 
     /**
      * Subscribing to channel
      */
-    private void subscribe() {
-        try {
-            JSONObject jsonObject = new JSONObject();
-            fillSubscriptionJSON(jsonObject);
-
-            JSONArray messages = new JSONArray();
-            messages.put(jsonObject);
-
-            client.send(messages.toString());
-        } catch (JSONException e) {
-            logErrorWhen("during subscription", e);
-        }
-    }
-
-
-    //TODO: implement
     private void subscribe(final SubscribeMessage subscribeMessage) {
         try {
             JSONObject jsonObject = new JSONObject();
-            fillSubscriptionJSON(jsonObject);
+            fillSubscriptionJSON(jsonObject, subscribeMessage);
 
             JSONArray messages = new JSONArray();
             messages.put(jsonObject);
@@ -351,14 +346,16 @@ public class PushService extends Service {
      * @param jsonObject subscription message
      * @throws JSONException thrown to indicate a problem with the JSON API
      */
-    protected void fillSubscriptionJSON(final JSONObject jsonObject) throws JSONException {
+    protected void fillSubscriptionJSON(final JSONObject jsonObject, final SubscribeMessage subscribeMessage) throws JSONException {
         jsonObject.put("uid", UUID.randomUUID().toString());
         jsonObject.put("method", "subscribe");
         JSONObject params = new JSONObject();
+        String channel = subscribeMessage.channel;
         params.put("channel", channel);
         if (channel.startsWith(PRIVATE_CHANNEL_PREFIX)) {
-            params.put("sign", channelToken);
-            params.put("client", clientId); //FIXME: здесь должен быть client id который получается из респонса о connect'е
+            Assert.isTrue(!TextUtils.isEmpty(subscribeMessage.channelToken));
+            params.put("sign", subscribeMessage.channelToken);
+            params.put("client", clientId);
             params.put("info", "");
         }
         jsonObject.put("params", params);
@@ -398,9 +395,34 @@ public class PushService extends Service {
             PushService.this.onOpen(handshakedata);
         }
 
+        /**
+         * Internal handler of message from WebSocket, which can be either
+         * JSONObject and JSONArray
+         * @param message string frame
+         */
         @Override
         public void onMessage(final String message) {
-            PushService.this.onMessage(message);
+            Log.d("PUSH", "Message from fugo: " + message);
+            try {
+                Object object = new JSONTokener(message).nextValue();
+                if (object instanceof JSONObject) {
+                    JSONObject messageObj = (JSONObject) object;
+                    queueMessage(messageObj);
+                } else if (object instanceof JSONArray) {
+                    JSONArray messageArray = new JSONArray(message);
+                    for (int i = 0; i < messageArray.length(); i++) {
+                        JSONObject messageObj = messageArray.optJSONObject(i);
+                        queueMessage(messageObj);
+                    }
+                }
+            } catch (JSONException e) {
+                logErrorWhen("during message handling", e);
+            }
+        }
+
+        private void queueMessage(final JSONObject message) {
+            Message msg = Messages.getNewWSMessage(message);
+            messageHandler.sendMessage(msg);
         }
 
         @Override
@@ -457,33 +479,33 @@ public class PushService extends Service {
 
     private class MessageHandler extends Handler {
 
-        public MessageHandler() {
-        }
-
-        public MessageHandler(final Callback callback) {
-            super(callback);
-        }
-
         public MessageHandler(final Looper looper) {
             super(looper);
-        }
-
-        public MessageHandler(final Looper looper, final Callback callback) {
-            super(looper, callback);
         }
 
         @Override
         public void handleMessage(final Message msg) {
             switch (msg.what) {
-            case Messages.SUBSCRIBE_MESSAGE_ID:
+            case Messages.SUBSCRIBE_MESSAGE_ID: {
                 SubscribeMessage subscribeMessage = (SubscribeMessage) msg.obj;
                 if (client == null || state != STATE_CONNECTED) {
+                    PushService.this.state = STATE_CONNECTING;
                     client = new PushClient(URI.create(host), new Draft_17());
                     client.start();
                     channelsToSubscribe.add(subscribeMessage);
                 } else {
                     subscribe(subscribeMessage);
                 }
+                break;
+            }
+            case Messages.NEW_WS_MESSAGE: {
+                NewWSMessage newWSMessage = (NewWSMessage) msg.obj;
+                JSONObject message = newWSMessage.message;
+                onMessage(message);
+                break;
+            }
+            default:
+                Log.e(TAG, "Message ID not resolved");
                 break;
             }
         }
