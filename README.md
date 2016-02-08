@@ -46,7 +46,7 @@ android {
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     testCompile 'junit:junit:4.12'
-    compile 'com.github.sammyvimes:acentrifugo:0.32-SNAPSHOT'
+    compile 'com.github.sammyvimes:acentrifugo:0.35-SNAPSHOT'
 }
 
 ```
@@ -71,7 +71,7 @@ and create a <b>BroadcastReceiver</b>
 
 When you are ready to start push-service (you have id of client, token and it's timestamp), just call 
 ```
-PushService.start(....) 
+PushService.subscribe(....)
 //note that there are multiple implementations of that function, that take different parameters
 ```
 
