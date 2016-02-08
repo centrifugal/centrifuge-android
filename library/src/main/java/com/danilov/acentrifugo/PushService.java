@@ -132,7 +132,7 @@ public class PushService extends Service {
             return START_NOT_STICKY;
         }
 
-        if (host != null) {
+        if (host == null) {
             //filling this info only once
             //connection to multiple host not intended to be supported
             host = intent.getStringExtra(HOST_EXTRA);
