@@ -12,6 +12,12 @@
             android:name=".MainActivity"
             android:label="@string/title_activity_main"
             android:theme="@style/AppTheme.NoActionBar" >
+
+            <intent-filter>
+                <action android:name="android.intent.action.LAUNCHER"/>
+                <action android:name="android.intent.action.DEFAULT"/>
+            </intent-filter>
+
         </activity>
     </application>
 

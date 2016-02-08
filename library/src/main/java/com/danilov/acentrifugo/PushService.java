@@ -3,7 +3,11 @@ package com.danilov.acentrifugo;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.IBinder;
+import android.os.Looper;
+import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -19,6 +23,9 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -32,6 +39,16 @@ public class PushService extends Service {
 
     private static final String TAG = "ACentrifugoPushService";
     private static final String PRIVATE_CHANNEL_PREFIX = "$";
+
+    private static final int STATE_NOT_CONNECTED = 0;
+
+    private static final int STATE_ERROR = 1;
+
+    private static final int STATE_CONNECTED = 2;
+
+    private static final int STATE_DISCONNECTING = 3;
+
+    private static final int STATE_CONNECTING = 4;
 
     /**
      * Key for intent's host value
@@ -63,10 +80,11 @@ public class PushService extends Service {
      */
     public static final String TOKEN_TIMESTAMP_EXTRA = "tokenTimestamp";
 
-
     private String host;
 
     private String userId;
+
+    private String clientId;
 
     private String tokenTimestamp;
 
@@ -78,21 +96,61 @@ public class PushService extends Service {
 
     private PushClient client;
 
+    private HandlerThread messageThread = null;
+    private Handler messageHandler = null;
+
+    private int state = STATE_NOT_CONNECTED;
+
+    private List<SubscribeMessage> channelsToSubscribe = new ArrayList<>();
+
+    private List<Message> pendingMessages = new LinkedList<>();
+    private final Object handlerMonitor = new Object();
+    private volatile boolean hasHandler = false;
+
     @Override
     public int onStartCommand(final Intent intent, final int flags, final int startId) {
         super.onStartCommand(intent, flags, startId);
-        if (intent != null) {
-            host = intent.getStringExtra(HOST_EXTRA);
-            userId = intent.getStringExtra(USERID_EXTRA);
-            tokenTimestamp = intent.getStringExtra(TOKEN_TIMESTAMP_EXTRA);
-            token = intent.getStringExtra(TOKEN_EXTRA);
-            channel = intent.getStringExtra(CHANNEL_EXTRA);
-            channelToken = intent.getStringExtra(CHANNEL_TOKEN_EXTRA);
-            client = new PushClient(URI.create(host), new Draft_17());
-            client.start();
-            return START_STICKY;
+
+        if (messageHandler == null) {
+            messageThread = new MessageThread("CENTRIFUGO_THREAD", new Runnable() {
+                @Override
+                public void run() {
+                    synchronized (handlerMonitor) {
+                        messageHandler = new MessageHandler(messageThread.getLooper());
+                        hasHandler = true;
+                    }
+                    for (Message message : pendingMessages) {
+                        messageHandler.sendMessage(message);
+                    }
+                }
+            });
         }
-        return START_NOT_STICKY;
+
+        if (intent == null) {
+            return START_NOT_STICKY;
+        }
+
+        host = intent.getStringExtra(HOST_EXTRA);
+        userId = intent.getStringExtra(USERID_EXTRA);
+        tokenTimestamp = intent.getStringExtra(TOKEN_TIMESTAMP_EXTRA);
+        token = intent.getStringExtra(TOKEN_EXTRA);
+
+        String channel = intent.getStringExtra(CHANNEL_EXTRA);
+        String channelToken = intent.getStringExtra(CHANNEL_TOKEN_EXTRA);
+
+        Message message = Messages.getSubscribeMessage(channel, channelToken);
+
+        if (!hasHandler) {
+            synchronized (handlerMonitor) {
+                if (!hasHandler) {
+                    pendingMessages.add(message);
+                }
+            }
+        } else {
+            messageHandler.sendMessage(message);
+        }
+
+        return START_STICKY;
     }
 
     /**
@@ -105,7 +163,7 @@ public class PushService extends Service {
      * @param token user's token, passed from web application
      * @param tokenTimestamp token's timestamp, passed from web application
      */
-    public static void start(@NonNull final Context context,
+    public static void subscribe(@NonNull final Context context,
                              @NonNull final String host,
                              @NonNull final String channel,
                              @Nullable final String channelToken,
@@ -131,12 +189,12 @@ public class PushService extends Service {
      * @param token user's token, passed from web application
      * @param tokenTimestamp token's timestamp, passed from web application
      */
-    public static void start(@NonNull final Context context,
+    public static void subscribe(@NonNull final Context context,
                              @NonNull final String host,
                              @NonNull final String userId,
                              @NonNull final String token,
                              @NonNull final String tokenTimestamp) {
-        start(context, host, context.getString(R.string.centrifugo_channel), null, userId, token, tokenTimestamp);
+        subscribe(context, host, context.getString(R.string.centrifugo_channel), null, userId, token, tokenTimestamp);
     }
 
     /**
@@ -149,11 +207,11 @@ public class PushService extends Service {
      * @param token user's token, passed from web application
      * @param tokenTimestamp token's timestamp, passed from web application
      */
-    public static void start(@NonNull final Context context,
+    public static void subscribe(@NonNull final Context context,
                              @NonNull final String userId,
                              @NonNull final String token,
                              @NonNull final String tokenTimestamp) {
-        start(context, context.getString(R.string.centrifugo_host), userId, token, tokenTimestamp);
+        subscribe(context, context.getString(R.string.centrifugo_host), userId, token, tokenTimestamp);
     }
 
 
@@ -171,7 +229,7 @@ public class PushService extends Service {
             messages.put(jsonObject);
             client.send(messages.toString());
         } catch (JSONException e) {
-            onError("during connection", e);
+            logErrorWhen("during connection", e);
         }
     }
 
@@ -214,7 +272,7 @@ public class PushService extends Service {
                 }
             }
         } catch (JSONException e) {
-            onError("during message handling", e);
+            logErrorWhen("during message handling", e);
         }
     }
 
@@ -233,6 +291,10 @@ public class PushService extends Service {
     protected void onMessage(@NonNull final JSONObject message) {
         String method = message.optString("method", "");
         if (method.equals("connect")) {
+            JSONObject body = message.optJSONObject("body");
+            if (body != null) {
+                this.clientId = body.optString("client");
+            }
             subscribe();
             return;
         }
@@ -263,7 +325,23 @@ public class PushService extends Service {
 
             client.send(messages.toString());
         } catch (JSONException e) {
-            onError("during subscription", e);
+            logErrorWhen("during subscription", e);
+        }
+    }
+
+
+    //TODO: implement
+    private void subscribe(final SubscribeMessage subscribeMessage) {
+        try {
+            JSONObject jsonObject = new JSONObject();
+            fillSubscriptionJSON(jsonObject);
+
+            JSONArray messages = new JSONArray();
+            messages.put(jsonObject);
+
+            client.send(messages.toString());
+        } catch (JSONException e) {
+            logErrorWhen("during subscription", e);
         }
     }
 
@@ -280,7 +358,7 @@ public class PushService extends Service {
         params.put("channel", channel);
         if (channel.startsWith(PRIVATE_CHANNEL_PREFIX)) {
             params.put("sign", channelToken);
-            params.put("client", userId); //FIXME: здесь должен быть client id который получается из респонса о connect'е
+            params.put("client", clientId); //FIXME: здесь должен быть client id который получается из респонса о connect'е
             params.put("info", "");
         }
         jsonObject.put("params", params);
@@ -291,10 +369,10 @@ public class PushService extends Service {
     }
 
     public void onClose(final int code, final String reason, final boolean remote) {
-        Log.d(TAG, "onClose: " + code + ", " + reason + ", " + remote);
+        Log.i(TAG, "onClose: " + code + ", " + reason + ", " + remote);
     }
 
-    public void onError(final String when, final Exception ex) {
+    public void logErrorWhen(final String when, final Exception ex) {
         Log.e(TAG, "Error occured  " + when +  ": ", ex);
     }
 
@@ -332,7 +410,7 @@ public class PushService extends Service {
                 this.closeBlocking();
                 clientThread.interrupt();
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                Log.e(TAG, "Error while closing WS connection: " + e.getMessage(), e);
             }
         }
 
@@ -343,7 +421,7 @@ public class PushService extends Service {
                 this.closeBlocking();
                 clientThread.interrupt();
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                Log.e(TAG, "Error while closing WS connection: " + e.getMessage(), e);
             }
         }
 
@@ -357,6 +435,59 @@ public class PushService extends Service {
     @Override
     public IBinder onBind(final Intent intent) {
         return null;
+    }
+
+    private class MessageThread extends HandlerThread {
+
+        private Runnable onLooperPrepared;
+
+        public MessageThread(final String name, final Runnable onLooperPrepared) {
+            super(name);
+            this.onLooperPrepared = onLooperPrepared;
+        }
+
+        @Override
+        protected void onLooperPrepared() {
+            if (onLooperPrepared != null) {
+                onLooperPrepared.run();
+            }
+        }
+
+    }
+
+    private class MessageHandler extends Handler {
+
+        public MessageHandler() {
+        }
+
+        public MessageHandler(final Callback callback) {
+            super(callback);
+        }
+
+        public MessageHandler(final Looper looper) {
+            super(looper);
+        }
+
+        public MessageHandler(final Looper looper, final Callback callback) {
+            super(looper, callback);
+        }
+
+        @Override
+        public void handleMessage(final Message msg) {
+            switch (msg.what) {
+            case Messages.SUBSCRIBE_MESSAGE_ID:
+                SubscribeMessage subscribeMessage = (SubscribeMessage) msg.obj;
+                if (client == null || state != STATE_CONNECTED) {
+                    client = new PushClient(URI.create(host), new Draft_17());
+                    client.start();
+                    channelsToSubscribe.add(subscribeMessage);
+                } else {
+                    subscribe(subscribeMessage);
+                }
+                break;
+            }
+        }
+
     }
 
 }
