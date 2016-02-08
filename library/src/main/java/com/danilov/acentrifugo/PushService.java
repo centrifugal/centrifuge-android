@@ -402,7 +402,6 @@ public class PushService extends Service {
          */
         @Override
         public void onMessage(final String message) {
-            Log.d("PUSH", "Message from fugo: " + message);
             try {
                 Object object = new JSONTokener(message).nextValue();
                 if (object instanceof JSONObject) {
