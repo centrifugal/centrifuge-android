@@ -1,0 +1,6 @@
+{
+    "web_password": "strong_password_to_log_in",
+    "web_secret": "strong_secret",
+    "watch": true,
+    "secret": "very-long-secret-key"
+}

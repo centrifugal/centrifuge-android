@@ -90,7 +90,7 @@ public class Centrifugo {
         this.tokenTimestamp = tokenTimestamp;
     }
 
-    private void start() {
+    public void start() {
         if (client == null || state != STATE_CONNECTED) {
             this.state = STATE_CONNECTING;
             client = new Client(URI.create(host), new Draft_17());

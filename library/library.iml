@@ -99,6 +99,7 @@
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/res" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/rs" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/shaders" />
+      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/sourceFolderJavaResources" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/symbols" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/tmp" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/transforms" />
@@ -112,11 +113,58 @@
     </content>
     <orderEntry type="jdk" jdkName="Android API 23 Platform" jdkType="Android SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" exported="" scope="TEST" name="hamcrest-core-1.3" level="project" />
-    <orderEntry type="library" exported="" name="Java-WebSocket-1.3.0" level="project" />
-    <orderEntry type="library" exported="" scope="TEST" name="junit-4.12" level="project" />
-    <orderEntry type="library" exported="" name="support-v4-23.1.0" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="mockito-core-2.0.52-beta" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="commons-io-2.3" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="okhttp-2.7.5" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="okio-1.6.0" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="jcl-over-slf4j-1.7.12" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="okhttp-ws-2.7.5" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="asm-commons-5.0.1" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="asm-5.0.1" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="shadows-core-3.0" level="project" />
     <orderEntry type="library" exported="" name="appcompat-v7-23.1.0" level="project" />
     <orderEntry type="library" exported="" name="support-annotations-23.1.0" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="commons-codec-1.8" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="guava-18.0" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="commons-logging-1.1.3" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="icu4j-53.1" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="commons-lang-2.6" level="project" />
+    <orderEntry type="library" exported="" name="Java-WebSocket-1.3.0" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="robolectric-resources-3.0" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="duct-tape-1.0.5" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="asm-tree-5.0.1" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="sqlite4java-0.282" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="robolectric-3.0" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="bcprov-jdk15on-1.51" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="maven-ant-tasks-2.1.3" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="zt-exec-1.8" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="ant-1.8.0" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="bcpkix-jdk15on-1.51" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="accessibility-test-framework-1.0" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="httpcore-4.3" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="ant-launcher-1.8.0" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="slf4j-ext-1.7.2" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="httpclient-4.3" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="asm-util-5.0.1" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="bcprov-jdk16-1.46" level="project" />
+    <orderEntry type="library" exported="" name="support-v4-23.1.0" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="javassist-3.18.1-GA" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="objenesis-2.1" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="mockwebserver-2.7.5" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="testcontainers-1.0.4" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="annotations-13.0" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="robolectric-annotations-3.0" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="byte-buddy-1.3.16" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="robolectric-utils-3.0" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="asm-analysis-5.0.1" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="unix-socket-factory-2015-01-27T15-02-14" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="cal10n-api-0.7.4" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="hamcrest-core-1.3" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="vtd-xml-2.11" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="okhttp-3.2.0" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="junit-4.12" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="xz-1.2" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="slf4j-api-1.7.12" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="commons-compress-1.5" level="project" />
   </component>
 </module>
