@@ -66,7 +66,7 @@ public class Centrifugo {
 
     private List<String> subscribedChannels = new ArrayList<>();
 
-    private List<SubscribeMessage> channelsToSubscribe = new ArrayList<>();
+    private List<Subscription> channelsToSubscribe = new ArrayList<>();
 
     @Nullable
     private DownstreamMessageListener downstreamMessageListener;
@@ -203,10 +203,10 @@ public class Centrifugo {
         }
     }
 
-    public void subscribe(final SubscribeMessage subscribeMessage) {
+    public void subscribe(final Subscription subscription) {
         try {
             JSONObject jsonObject = new JSONObject();
-            fillSubscriptionJSON(jsonObject, subscribeMessage);
+            fillSubscriptionJSON(jsonObject, subscription);
 
             JSONArray messages = new JSONArray();
             messages.put(jsonObject);
@@ -223,16 +223,16 @@ public class Centrifugo {
      * @param jsonObject subscription message
      * @throws JSONException thrown to indicate a problem with the JSON API
      */
-    protected void fillSubscriptionJSON(final JSONObject jsonObject, final SubscribeMessage subscribeMessage) throws JSONException {
+    protected void fillSubscriptionJSON(final JSONObject jsonObject, final Subscription subscription) throws JSONException {
         jsonObject.put("uid", UUID.randomUUID().toString());
         jsonObject.put("method", "subscribe");
         JSONObject params = new JSONObject();
-        String channel = subscribeMessage.channel;
+        String channel = subscription.getChannel();
         params.put("channel", channel);
         if (channel.startsWith(PRIVATE_CHANNEL_PREFIX)) {
-            params.put("sign", subscribeMessage.channelToken);
+            params.put("sign", subscription.getChannelToken());
             params.put("client", clientId);
-            params.put("info", subscribeMessage.info);
+            params.put("info", subscription.getInfo());
         }
         jsonObject.put("params", params);
     }
@@ -261,8 +261,8 @@ public class Centrifugo {
                 this.clientId = body.optString("client");
             }
             this.state = STATE_CONNECTED;
-            for (SubscribeMessage subscribeMessage : channelsToSubscribe) {
-                subscribe(subscribeMessage);
+            for (Subscription subscription : channelsToSubscribe) {
+                subscribe(subscription);
             }
             channelsToSubscribe.clear();
             return;
@@ -334,7 +334,7 @@ public class Centrifugo {
 
         public Client(final URI serverURI, final Draft draft) {
             super(serverURI, draft);
-            clientThread = new Thread(this);
+            clientThread = new Thread(this, "Centrifugo");
         }
 
         public Thread getClientThread() {

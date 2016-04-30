@@ -14,7 +14,7 @@ class Messages {
 
     public static Message getSubscribeMessage(final String channel, final String channelToken) {
         Message message = Message.obtain();
-        message.obj = new SubscribeMessage(channel, channelToken);
+        message.obj = new Subscription(channel, channelToken);
         message.what = SUBSCRIBE_MESSAGE_ID;
         return message;
     }

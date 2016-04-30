@@ -51,7 +51,7 @@ public class TestWebapp extends Dispatcher {
                     jsonObject.put("token", token);
                     MockResponse mockResponse = new MockResponse();
                     mockResponse.setBody(jsonObject.toString());
-                    mockResponse.setStatus("OK");
+                    mockResponse.setResponseCode(200);
                     return mockResponse;
                 } catch (UnsupportedEncodingException e) {
                     e.printStackTrace();

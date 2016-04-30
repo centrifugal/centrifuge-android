@@ -7,7 +7,7 @@ import android.support.annotation.NonNull;
 /**
  * Created by semyon on 08.02.16.
  */
-public class Info implements Parcelable {
+public class ConnectionInfo implements Parcelable {
 
     public static final int SUBSCRIBED_TO_CHANNEL = 0;
     public static final int UNSUBSCRIBED_FROM_CHANNEL = 1;
@@ -21,25 +21,25 @@ public class Info implements Parcelable {
     @NonNull
     private String value;
 
-    public Info(final int state, @NonNull final String value) {
+    public ConnectionInfo(final int state, @NonNull final String value) {
         this.state = state;
         this.value = value;
     }
 
-    protected Info(Parcel in) {
+    protected ConnectionInfo(Parcel in) {
         state = in.readInt();
         value = in.readString();
     }
 
-    public static final Creator<Info> CREATOR = new Creator<Info>() {
+    public static final Creator<ConnectionInfo> CREATOR = new Creator<ConnectionInfo>() {
         @Override
-        public Info createFromParcel(Parcel in) {
-            return new Info(in);
+        public ConnectionInfo createFromParcel(Parcel in) {
+            return new ConnectionInfo(in);
         }
 
         @Override
-        public Info[] newArray(int size) {
-            return new Info[size];
+        public ConnectionInfo[] newArray(int size) {
+            return new ConnectionInfo[size];
         }
     };
 
