@@ -14,10 +14,15 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.annotation.Config;
+import org.testcontainers.containers.BindMode;
+import org.testcontainers.containers.GenericContainer;
+
+import java.util.List;
 
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -32,17 +37,15 @@ import okhttp3.Response;
 @Config(constants = BuildConfig.class)
 public class BasicTests {
 
-    private static String CENTRIFUGO_HOST =  System.getenv("CENTRIFUGO_HOST");
-
-    @BeforeClass
-    public static void beforeClass() throws Exception {
-    }
-
+    public GenericContainer centrifugo;
 
     private MockWebServer mockWebServer;
 
     @Before
     public void beforeMethod() throws Exception {
+        centrifugo = new GenericContainer("samvimes/centrifugo-with-web:1.2")
+                        .withExposedPorts(8000);
+        centrifugo.start();
         mockWebServer = new MockWebServer();
         mockWebServer.start();
     }
@@ -50,11 +53,13 @@ public class BasicTests {
     @After
     public void afterMethod() throws Exception {
         mockWebServer.shutdown();
+        centrifugo.stop();
     }
 
     @Test
     public void testConnection() throws Exception {
-        String centrifugoAddress = "ws://" + CENTRIFUGO_HOST + "/connection/websocket";
+        String containerIpAddress = centrifugo.getContainerIpAddress() + ":" + centrifugo.getMappedPort(8000);
+        String centrifugoAddress = "ws://" + containerIpAddress + "/connection/websocket";
 
         mockWebServer.setDispatcher(new TestWebapp());
         String url = mockWebServer.url("/tokens").toString();
@@ -98,8 +103,9 @@ public class BasicTests {
 
     @Test
     public void testSubscribe() throws Exception {
-        String centrifugoAddress = "ws://" + CENTRIFUGO_HOST + "/connection/websocket";
-        String centrifugoApiAddress = "http://" + CENTRIFUGO_HOST + "/api/";
+        String containerIpAddress = centrifugo.getContainerIpAddress() + ":" + centrifugo.getMappedPort(8000);
+        String centrifugoAddress = "ws://" + containerIpAddress + "/connection/websocket";
+        String centrifugoApiAddress = "http://" + containerIpAddress + "/api/";
 
         mockWebServer.setDispatcher(new TestWebapp());
         String url = mockWebServer.url("/tokens").toString();
@@ -166,8 +172,9 @@ public class BasicTests {
 
     @Test
     public void testSendReceiveMessage() throws Exception {
-        String centrifugoAddress = "ws://" + CENTRIFUGO_HOST + "/connection/websocket";
-        String centrifugoApiAddress = "http://" + CENTRIFUGO_HOST + "/api/";
+        String containerIpAddress = centrifugo.getContainerIpAddress() + ":" + centrifugo.getMappedPort(8000);
+        String centrifugoAddress = "ws://" + containerIpAddress + "/connection/websocket";
+        String centrifugoApiAddress = "http://" + containerIpAddress + "/api/";
 
         mockWebServer.setDispatcher(new TestWebapp());
         String url = mockWebServer.url("/tokens").toString();

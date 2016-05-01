@@ -101,7 +101,6 @@ public class Centrifugo {
     }
 
     public void disconnect() {
-        System.out.println("state: " + state);
         if (client != null && state == STATE_CONNECTED) {
             client.stop();
         }
