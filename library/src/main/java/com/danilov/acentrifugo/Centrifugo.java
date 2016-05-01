@@ -6,9 +6,11 @@ import android.util.Log;
 
 import com.danilov.acentrifugo.async.Future;
 import com.danilov.acentrifugo.listener.ConnectionListener;
+import com.danilov.acentrifugo.listener.DataMessageListener;
 import com.danilov.acentrifugo.listener.DownstreamMessageListener;
 import com.danilov.acentrifugo.listener.PartyListener;
 import com.danilov.acentrifugo.listener.SubscriptionListener;
+import com.danilov.acentrifugo.message.DataMessage;
 import com.danilov.acentrifugo.message.DownstreamMessage;
 import com.danilov.acentrifugo.message.JoinMessage;
 import com.danilov.acentrifugo.message.LeftMessage;
@@ -69,7 +71,7 @@ public class Centrifugo {
     private List<Subscription> channelsToSubscribe = new ArrayList<>();
 
     @Nullable
-    private DownstreamMessageListener downstreamMessageListener;
+    private DataMessageListener dataMessageListener;
 
     @Nullable
     private ConnectionListener connectionListener;
@@ -90,11 +92,18 @@ public class Centrifugo {
         this.tokenTimestamp = tokenTimestamp;
     }
 
-    public void start() {
+    public void connect() {
         if (client == null || state != STATE_CONNECTED) {
             this.state = STATE_CONNECTING;
             client = new Client(URI.create(host), new Draft_17());
             client.start();
+        }
+    }
+
+    public void disconnect() {
+        System.out.println("state: " + state);
+        if (client != null && state == STATE_CONNECTED) {
+            client.stop();
         }
     }
 
@@ -106,8 +115,8 @@ public class Centrifugo {
         this.connectionListener = connectionListener;
     }
 
-    public void setDownstreamMessageListener(@Nullable final DownstreamMessageListener downstreamMessageListener) {
-        this.downstreamMessageListener = downstreamMessageListener;
+    public void setDataMessageListener(@Nullable final DataMessageListener dataMessageListener) {
+        this.dataMessageListener = dataMessageListener;
     }
 
     /**
@@ -117,7 +126,7 @@ public class Centrifugo {
      * @param handshakeData information about WebSocket handshake
      */
     protected void onOpen(final ServerHandshake handshakeData) {
-        onConnected();
+        onWebSocketOpen();
         try {
             JSONObject jsonObject = new JSONObject();
             fillConnectionJSON(handshakeData, jsonObject);
@@ -153,6 +162,12 @@ public class Centrifugo {
         jsonObject.put("params", params);
     }
 
+    protected void onWebSocketOpen() {
+        if (connectionListener != null) {
+            connectionListener.onWebSocketOpen();
+        }
+    }
+
     protected void onConnected() {
         if (connectionListener != null) {
             connectionListener.onConnected();
@@ -185,9 +200,9 @@ public class Centrifugo {
         }
     }
 
-    protected void onNewMessage(final DownstreamMessage message) {
-        if (downstreamMessageListener != null) {
-            downstreamMessageListener.onDownstreamMessage(message);
+    protected void onNewMessage(final DataMessage message) {
+        if (dataMessageListener != null) {
+            dataMessageListener.onNewDataMessage(message);
         }
     }
 
@@ -265,6 +280,7 @@ public class Centrifugo {
                 subscribe(subscription);
             }
             channelsToSubscribe.clear();
+            onConnected();
             return;
         }
         if (method.equals("subscribe")) {
@@ -300,7 +316,7 @@ public class Centrifugo {
                 listener.onDownstreamMessage(presenceMessage);
             }
         }
-        onNewMessage(new DownstreamMessage(message));
+        onNewMessage(new DataMessage(message));
     }
 
     public Future<PresenceMessage> requestPresence(final String channelName) {
@@ -373,12 +389,7 @@ public class Centrifugo {
         @Override
         public void onClose(final int code, final String reason, final boolean remote) {
             Centrifugo.this.onClose(code, reason, remote);
-            try {
-                this.closeBlocking();
-                clientThread.interrupt();
-            } catch (InterruptedException e) {
-                Log.e(TAG, "Error while closing WS connection: " + e.getMessage(), e);
-            }
+            clientThread.interrupt();
         }
 
         @Override
@@ -394,6 +405,15 @@ public class Centrifugo {
 
         public void start() {
             clientThread.start();
+        }
+
+        public void stop() {
+            try {
+                this.closeBlocking();
+                clientThread.interrupt();
+            } catch (InterruptedException e) {
+                Log.e(TAG, "Error while closing WS connection: " + e.getMessage(), e);
+            }
         }
 
     }

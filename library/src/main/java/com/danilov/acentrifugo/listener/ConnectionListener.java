@@ -5,6 +5,8 @@ package com.danilov.acentrifugo.listener;
  */
 public interface ConnectionListener {
 
+    void onWebSocketOpen();
+
     void onConnected();
 
     void onDisconnected(final int code, final String reason, final boolean remote);

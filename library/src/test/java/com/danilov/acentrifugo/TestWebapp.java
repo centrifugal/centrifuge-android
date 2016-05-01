@@ -1,5 +1,6 @@
 package com.danilov.acentrifugo;
 
+import com.danilov.acentrifugo.util.Signing;
 import com.squareup.okhttp.mockwebserver.Dispatcher;
 import com.squareup.okhttp.mockwebserver.MockResponse;
 import com.squareup.okhttp.mockwebserver.RecordedRequest;
@@ -20,7 +21,6 @@ import javax.crypto.spec.SecretKeySpec;
  */
 public class TestWebapp extends Dispatcher {
 
-    private String secret = "very-long-secret-key";
 
     @Override
     public MockResponse dispatch(final RecordedRequest request) throws InterruptedException {
@@ -31,20 +31,8 @@ public class TestWebapp extends Dispatcher {
         String info = "";
         switch (path) {
             case "/tokens":
-                SecretKeySpec secretKeySpec = new SecretKeySpec(secret.getBytes(), "HmacSHA256");
-                Mac mac = null;
+                String token = Signing.generateConnectionToken(userId, timestamp, info);
                 try {
-                    mac = Mac.getInstance("HmacSHA256");
-                } catch (NoSuchAlgorithmException e) {}
-                try {
-                    mac.init(secretKeySpec);
-                } catch (InvalidKeyException e) {}
-                mac.update(userId.getBytes());
-                mac.update(timestamp.getBytes());
-                byte[] hmac = mac.doFinal(info.getBytes());
-                byte[] encode = new Hex().encode(hmac);
-                try {
-                    String token = new String(encode, "UTF-8");
                     JSONObject jsonObject = new JSONObject();
                     jsonObject.put("userId", userId);
                     jsonObject.put("timestamp", timestamp);
@@ -53,8 +41,6 @@ public class TestWebapp extends Dispatcher {
                     mockResponse.setBody(jsonObject.toString());
                     mockResponse.setResponseCode(200);
                     return mockResponse;
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }

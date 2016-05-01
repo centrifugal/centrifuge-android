@@ -22,6 +22,9 @@ public class DataLock<T> {
     }
 
     public T lockAndGet(final long timeout, final TimeUnit unit) {
+        if (checkData()) {
+            return data;
+        }
         while (true) {
             if (timeout == -1) {
                 try {
