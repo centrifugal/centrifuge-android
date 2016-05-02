@@ -6,7 +6,7 @@ import android.support.annotation.Nullable;
 /**
  * Created by semyon on 08.02.16.
  */
-class Subscription {
+public class Subscription {
 
     @NonNull
     private String channel;

@@ -17,7 +17,7 @@ public class DataLock<T> {
 
     private T data = null;
 
-    public T lockAndGet() throws InterruptedException {
+    public T lockAndGet() {
         return lockAndGet(-1, null);
     }
 

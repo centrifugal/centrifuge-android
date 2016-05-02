@@ -11,7 +11,10 @@ public class DownstreamMessage {
 
     private JSONObject body;
 
+    private JSONObject messageOriginal;
+
     public DownstreamMessage(final JSONObject jsonObject) {
+        this.messageOriginal = jsonObject;
         UUID = jsonObject.optString("uid");
         body = jsonObject.optJSONObject("body");
     }

@@ -106,6 +106,15 @@ public class Centrifugo {
         }
     }
 
+    @Nullable
+    public PartyListener getPartyListener() {
+        return partyListener;
+    }
+
+    public void setPartyListener(@Nullable final PartyListener partyListener) {
+        this.partyListener = partyListener;
+    }
+
     public void setSubscriptionListener(@Nullable final SubscriptionListener subscriptionListener) {
         this.subscriptionListener = subscriptionListener;
     }

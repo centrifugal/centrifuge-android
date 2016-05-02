@@ -1,5 +1,10 @@
-package com.danilov.acentrifugo;
+package com.danilov.acentrifugo.it;
 
+import com.danilov.acentrifugo.BuildConfig;
+import com.danilov.acentrifugo.Centrifugo;
+import com.danilov.acentrifugo.Subscription;
+import com.danilov.acentrifugo.TestWebapp;
+import com.danilov.acentrifugo.async.DeadLockException;
 import com.danilov.acentrifugo.listener.ConnectionListener;
 import com.danilov.acentrifugo.listener.DataMessageListener;
 import com.danilov.acentrifugo.listener.SubscriptionListener;
@@ -43,7 +48,7 @@ public class BasicTests {
 
     @Before
     public void beforeMethod() throws Exception {
-        centrifugo = new GenericContainer("samvimes/centrifugo-with-web:1.2")
+        centrifugo = new GenericContainer("samvimes/centrifugo-with-web:1.3")
                         .withExposedPorts(8000);
         centrifugo.start();
         mockWebServer = new MockWebServer();
@@ -263,6 +268,111 @@ public class BasicTests {
 
         centrifugo.disconnect();
         Assert.assertTrue("Failed to properly disconnect to centrifugo", disconnected.lockAndGet());
+    }
+
+    @Test(expected = DeadLockException.class)
+    public void deadLockPreventionTest() throws Exception {
+        String containerIpAddress = centrifugo.getContainerIpAddress() + ":" + centrifugo.getMappedPort(8000);
+        String centrifugoAddress = "ws://" + containerIpAddress + "/connection/websocket";
+        String centrifugoApiAddress = "http://" + containerIpAddress + "/api/";
+
+        mockWebServer.setDispatcher(new TestWebapp());
+        String url = mockWebServer.url("/tokens").toString();
+
+        OkHttpClient okHttpClient = new OkHttpClient();
+
+        Request build = new Request.Builder().url(url).build();
+        Response execute = okHttpClient.newCall(build).execute();
+        String body = execute.body().string();
+        JSONObject loginObject = new JSONObject(body);
+        String userId = loginObject.optString("userId");
+        String timestamp = loginObject.optString("timestamp");
+        String token = loginObject.optString("token");
+        final Centrifugo centrifugo = new Centrifugo(centrifugoAddress,
+                userId, null, token, timestamp);
+
+        final DataLock<Boolean> connected = new DataLock<>();
+        final DataLock<Boolean> disconnected = new DataLock<>();
+
+        centrifugo.setConnectionListener(new ConnectionListener() {
+            @Override
+            public void onWebSocketOpen() {
+            }
+
+            @Override
+            public void onConnected() {
+                connected.setData(true);
+            }
+
+            @Override
+            public void onDisconnected(final int code, final String reason, final boolean remote) {
+                disconnected.setData(!remote);
+            }
+        });
+
+        centrifugo.connect();
+        Assert.assertTrue("Failed to connect to centrifugo", connected.lockAndGet());
+
+
+        final DataLock<String> channelSubscription = new DataLock<>();
+        centrifugo.setSubscriptionListener(new SubscriptionListener() {
+            @Override
+            public void onSubscribed(final String channelName) {
+                channelSubscription.setData(channelName);
+            }
+
+            @Override
+            public void onUnsubscribed(final String channelName) {
+
+            }
+
+            @Override
+            public void onSubscriptionError(final String channelName, final String error) {
+
+            }
+        });
+        Subscription subscription = new Subscription("test-channel");
+        centrifugo.subscribe(subscription);
+        Assert.assertEquals("test-channel", channelSubscription.lockAndGet());
+
+        final DataLock<DataMessage> messageData = new DataLock<>();
+        final DataLock<Exception> exceptionDataLock = new DataLock<>();
+        centrifugo.setDataMessageListener(new DataMessageListener() {
+            @Override
+            public void onNewDataMessage(final DataMessage message) {
+                messageData.setData(message);
+                try {
+                    centrifugo.requestPresence("test-channel").blockingGet();
+                } catch (Exception e) {
+                    exceptionDataLock.setData(e);
+                }
+            }
+        });
+
+        MediaType appJson = MediaType.parse("application/json");
+        JSONObject msg = new JSONObject();
+        msg.put("input", "Hello world");
+        JSONObject jsonObject = sendMessageJson("test-channel", msg);
+        String apiSign = Signing.generateApiToken(jsonObject.toString());
+        Request post = new Request.Builder()
+                .url(centrifugoApiAddress)
+                .method("POST",
+                        RequestBody.create(appJson, jsonObject.toString()))
+                .header("X-API-Sign", apiSign)
+                .header("Content-type", "application/json")
+                .build();
+        Response postMessage = okHttpClient.newCall(post).execute();
+        Assert.assertEquals(200, postMessage.code());
+        DataMessage dataMessage = messageData.lockAndGet();
+        String input = dataMessage.getData().toString();
+        Assert.assertEquals(msg.toString(), input);
+
+        Exception exception = exceptionDataLock.lockAndGet();
+
+        centrifugo.disconnect();
+        Assert.assertTrue("Failed to properly disconnect to centrifugo", disconnected.lockAndGet());
+
+        throw exception;
     }
 
     private JSONObject sendMessageJson(final String channel, final JSONObject message) {

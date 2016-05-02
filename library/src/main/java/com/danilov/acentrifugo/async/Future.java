@@ -21,7 +21,7 @@ public class Future<T> {
     @Nullable
     public T blockingGet(final long timeout, @Nullable final TimeUnit timeUnit) {
         if (Thread.currentThread() == restrictedThread) {
-            throw new RuntimeException("You are trying to block the thread, which will " +
+            throw new DeadLockException("You are trying to block the thread, which will " +
                     "process request. This results to a deadlock.");
         }
         if (data == null) {

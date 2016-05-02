@@ -16,6 +16,8 @@ import java.security.NoSuchAlgorithmException;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
+import okhttp3.Request;
+
 /**
  * Created by semyon on 29.04.16.
  */
@@ -29,6 +31,8 @@ public class TestWebapp extends Dispatcher {
         String userId = "test-user-id";
 //        String channelName = "test-channel";
         String info = "";
+        String num = request.getHeader("num");
+        userId += num;
         switch (path) {
             case "/tokens":
                 String token = Signing.generateConnectionToken(userId, timestamp, info);
