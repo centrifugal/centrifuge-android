@@ -34,7 +34,7 @@ public class DataMessage extends DownstreamMessage {
     @Nonnull
     private String channel;
 
-    @Nonnull
+    @Nullable
     private Info info;
 
     @Nonnull
@@ -53,8 +53,6 @@ public class DataMessage extends DownstreamMessage {
             JSONObject defaultInfo = infoJSON.optJSONObject("default_info");
             JSONObject channelInfo = infoJSON.optJSONObject("channel_info");
             info = new Info(user, defaultInfo, channelInfo);
-        } else {
-            throw new NullPointerException("Info from centrifugo is empty");
         }
 
 
@@ -71,7 +69,7 @@ public class DataMessage extends DownstreamMessage {
         return channel;
     }
 
-    @Nonnull
+    @Nullable
     public Info getInfo() {
         return info;
     }
