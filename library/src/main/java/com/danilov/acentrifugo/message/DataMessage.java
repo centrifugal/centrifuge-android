@@ -11,8 +11,22 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
+ * This file is part of ACentrifugo.
+ *
+ * ACentrifugo is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ACentrifugo is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License
+ * along with ACentrifugo.  If not, see <http://www.gnu.org/licenses/>.
+ *
  * Created by Semyon on 01.05.2016.
- */
+ * */
 public class DataMessage extends DownstreamMessage {
 
     private JSONObject data;
@@ -39,7 +53,10 @@ public class DataMessage extends DownstreamMessage {
             JSONObject defaultInfo = infoJSON.optJSONObject("default_info");
             JSONObject channelInfo = infoJSON.optJSONObject("channel_info");
             info = new Info(user, defaultInfo, channelInfo);
+        } else {
+            throw new NullPointerException("Info from centrifugo is empty");
         }
+
 
         String timestampString = body.optString("timestamp");
         timestamp = new Date(Long.valueOf(timestampString));

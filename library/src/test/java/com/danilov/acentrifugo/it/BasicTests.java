@@ -18,16 +18,11 @@ import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.annotation.Config;
-import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.GenericContainer;
-
-import java.util.List;
 
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -36,8 +31,22 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 /**
+ * This file is part of ACentrifugo.
+ *
+ * ACentrifugo is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ACentrifugo is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License
+ * along with ACentrifugo.  If not, see <http://www.gnu.org/licenses/>.
+ *
  * Created by semyon on 29.04.16.
- */
+ * */
 @RunWith(RobolectricGradleTestRunner.class)
 @Config(constants = BuildConfig.class)
 public class BasicTests {
@@ -110,7 +119,6 @@ public class BasicTests {
     public void testSubscribe() throws Exception {
         String containerIpAddress = centrifugo.getContainerIpAddress() + ":" + centrifugo.getMappedPort(8000);
         String centrifugoAddress = "ws://" + containerIpAddress + "/connection/websocket";
-        String centrifugoApiAddress = "http://" + containerIpAddress + "/api/";
 
         mockWebServer.setDispatcher(new TestWebapp());
         String url = mockWebServer.url("/tokens").toString();

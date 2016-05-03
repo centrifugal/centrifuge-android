@@ -31,8 +31,22 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 /**
+ * This file is part of ACentrifugo.
+ *
+ * ACentrifugo is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * ACentrifugo is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License
+ * along with ACentrifugo.  If not, see <http://www.gnu.org/licenses/>.
+ *
  * Created by Semyon on 02.05.2016.
- */
+ * */
 @RunWith(RobolectricGradleTestRunner.class)
 @Config(constants = BuildConfig.class)
 public class PresenceTest {
@@ -60,7 +74,6 @@ public class PresenceTest {
     public void testJoined() throws Exception {
         String containerIpAddress = centrifugo.getContainerIpAddress() + ":" + centrifugo.getMappedPort(8000);
         String centrifugoAddress = "ws://" + containerIpAddress + "/connection/websocket";
-        String centrifugoApiAddress = "http://" + containerIpAddress + "/api/";
 
         mockWebServer.setDispatcher(new TestWebapp());
         String url = mockWebServer.url("/tokens").toString();
@@ -147,7 +160,6 @@ public class PresenceTest {
     public void testLeft() throws Exception {
         String containerIpAddress = centrifugo.getContainerIpAddress() + ":" + centrifugo.getMappedPort(8000);
         String centrifugoAddress = "ws://" + containerIpAddress + "/connection/websocket";
-        String centrifugoApiAddress = "http://" + containerIpAddress + "/api/";
 
         mockWebServer.setDispatcher(new TestWebapp());
         String url = mockWebServer.url("/tokens").toString();
@@ -235,7 +247,6 @@ public class PresenceTest {
     public void testPresenceRequest() throws Exception {
         String containerIpAddress = centrifugo.getContainerIpAddress() + ":" + centrifugo.getMappedPort(8000);
         String centrifugoAddress = "ws://" + containerIpAddress + "/connection/websocket";
-        String centrifugoApiAddress = "http://" + containerIpAddress + "/api/";
 
         mockWebServer.setDispatcher(new TestWebapp());
         String url = mockWebServer.url("/tokens").toString();
@@ -336,7 +347,6 @@ public class PresenceTest {
     private Centrifugo addAnotherClient(final int num) throws IOException, JSONException {
         String containerIpAddress = centrifugo.getContainerIpAddress() + ":" + centrifugo.getMappedPort(8000);
         String centrifugoAddress = "ws://" + containerIpAddress + "/connection/websocket";
-        String centrifugoApiAddress = "http://" + containerIpAddress + "/api/";
 
         OkHttpClient okHttpClient = new OkHttpClient();
 
