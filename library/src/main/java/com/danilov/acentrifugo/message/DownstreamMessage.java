@@ -7,14 +7,14 @@ import org.json.JSONObject;
  */
 public class DownstreamMessage {
 
-    private String UUID;
+    protected String UUID;
 
-    private JSONObject body;
+    protected JSONObject body;
 
-    private JSONObject messageOriginal;
+    protected JSONObject originalMessage;
 
     public DownstreamMessage(final JSONObject jsonObject) {
-        this.messageOriginal = jsonObject;
+        this.originalMessage = jsonObject;
         UUID = jsonObject.optString("uid");
         body = jsonObject.optJSONObject("body");
     }
@@ -25,6 +25,10 @@ public class DownstreamMessage {
 
     public JSONObject getBody() {
         return body;
+    }
+
+    public JSONObject getOriginalMessage() {
+        return originalMessage;
     }
 
 }

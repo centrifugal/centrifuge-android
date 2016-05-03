@@ -1,7 +1,7 @@
 package com.danilov.acentrifugo.listener;
 
-import com.danilov.acentrifugo.message.JoinMessage;
-import com.danilov.acentrifugo.message.LeftMessage;
+import com.danilov.acentrifugo.message.presence.JoinMessage;
+import com.danilov.acentrifugo.message.presence.LeftMessage;
 
 /**
  * Created by semyon on 29.04.16.

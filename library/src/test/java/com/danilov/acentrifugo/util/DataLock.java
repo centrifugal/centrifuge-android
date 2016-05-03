@@ -1,6 +1,6 @@
 package com.danilov.acentrifugo.util;
 
-import android.support.annotation.NonNull;
+import javax.annotation.Nonnull;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;

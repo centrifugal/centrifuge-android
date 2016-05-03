@@ -2,7 +2,7 @@ package com.danilov.acentrifugo;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.support.annotation.NonNull;
+import javax.annotation.Nonnull;
 
 /**
  * Created by semyon on 08.02.16.
@@ -18,10 +18,10 @@ public class ConnectionInfo implements Parcelable {
 
     private int state;
 
-    @NonNull
+    @Nonnull
     private String value;
 
-    public ConnectionInfo(final int state, @NonNull final String value) {
+    public ConnectionInfo(final int state, @Nonnull final String value) {
         this.state = state;
         this.value = value;
     }
@@ -43,7 +43,7 @@ public class ConnectionInfo implements Parcelable {
         }
     };
 
-    @NonNull
+    @Nonnull
     public String getValue() {
         return value;
     }

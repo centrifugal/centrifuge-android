@@ -1,6 +1,6 @@
 package com.danilov.acentrifugo.async;
 
-import android.support.annotation.Nullable;
+import javax.annotation.Nullable;
 
 import com.danilov.acentrifugo.listener.FutureListener;
 

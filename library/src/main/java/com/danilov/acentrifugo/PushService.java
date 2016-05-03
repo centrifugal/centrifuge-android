@@ -8,8 +8,8 @@ import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import android.util.Log;
 
 import org.java_websocket.client.WebSocketClient;
@@ -171,13 +171,13 @@ public class PushService extends Service {
      * @param token user's token, passed from web application
      * @param tokenTimestamp token's timestamp, passed from web application
      */
-    public static void subscribe(@NonNull final Context context,
-                             @NonNull final String host,
-                             @NonNull final String channel,
+    public static void subscribe(@Nonnull final Context context,
+                             @Nonnull final String host,
+                             @Nonnull final String channel,
                              @Nullable final String channelToken,
-                             @NonNull final String userId,
-                             @NonNull final String token,
-                             @NonNull final String tokenTimestamp) {
+                             @Nonnull final String userId,
+                             @Nonnull final String token,
+                             @Nonnull final String tokenTimestamp) {
         Intent intent = new Intent(context, PushService.class);
         intent.putExtra(HOST_EXTRA, host);
         intent.putExtra(CHANNEL_EXTRA, channel);
@@ -197,11 +197,11 @@ public class PushService extends Service {
      * @param token user's token, passed from web application
      * @param tokenTimestamp token's timestamp, passed from web application
      */
-    public static void subscribe(@NonNull final Context context,
-                             @NonNull final String host,
-                             @NonNull final String userId,
-                             @NonNull final String token,
-                             @NonNull final String tokenTimestamp) {
+    public static void subscribe(@Nonnull final Context context,
+                             @Nonnull final String host,
+                             @Nonnull final String userId,
+                             @Nonnull final String token,
+                             @Nonnull final String tokenTimestamp) {
         subscribe(context, host, context.getString(R.string.centrifugo_channel), null, userId, token, tokenTimestamp);
     }
 
@@ -215,10 +215,10 @@ public class PushService extends Service {
      * @param token user's token, passed from web application
      * @param tokenTimestamp token's timestamp, passed from web application
      */
-    public static void subscribe(@NonNull final Context context,
-                             @NonNull final String userId,
-                             @NonNull final String token,
-                             @NonNull final String tokenTimestamp) {
+    public static void subscribe(@Nonnull final Context context,
+                             @Nonnull final String userId,
+                             @Nonnull final String token,
+                             @Nonnull final String tokenTimestamp) {
         subscribe(context, context.getString(R.string.centrifugo_host), userId, token, tokenTimestamp);
     }
 
@@ -272,7 +272,7 @@ public class PushService extends Service {
      * client's behaviour after connection and before subscription
      * @param message message to handle
      */
-    protected void onMessage(@NonNull final JSONObject message) {
+    protected void onMessage(@Nonnull final JSONObject message) {
         String method = message.optString("method", "");
         if (method.equals("connect")) {
             JSONObject body = message.optJSONObject("body");
@@ -375,7 +375,7 @@ public class PushService extends Service {
         Log.e(TAG, "onError: ", ex);
     }
 
-    public void onSubscriptionError(@NonNull final String subscriptionError) {
+    public void onSubscriptionError(@Nonnull final String subscriptionError) {
         Log.e(TAG, "subscription error: " + subscriptionError);
     }
 

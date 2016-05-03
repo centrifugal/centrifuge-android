@@ -1,7 +1,7 @@
 package com.danilov.acentrifugo;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import android.util.Log;
 
 import com.danilov.acentrifugo.async.Future;
@@ -12,9 +12,9 @@ import com.danilov.acentrifugo.listener.PartyListener;
 import com.danilov.acentrifugo.listener.SubscriptionListener;
 import com.danilov.acentrifugo.message.DataMessage;
 import com.danilov.acentrifugo.message.DownstreamMessage;
-import com.danilov.acentrifugo.message.JoinMessage;
-import com.danilov.acentrifugo.message.LeftMessage;
-import com.danilov.acentrifugo.message.PresenceMessage;
+import com.danilov.acentrifugo.message.presence.JoinMessage;
+import com.danilov.acentrifugo.message.presence.LeftMessage;
+import com.danilov.acentrifugo.message.presence.PresenceMessage;
 
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft;
@@ -202,7 +202,7 @@ public class Centrifugo {
         }
     }
 
-    protected void onSubscribedToChannel(@NonNull final String channelName) {
+    protected void onSubscribedToChannel(@Nonnull final String channelName) {
         if (subscriptionListener != null) {
             subscriptionListener.onSubscribed(channelName);
         }
@@ -276,7 +276,7 @@ public class Centrifugo {
      * client's behaviour after connection and before subscription
      * @param message message to handle
      */
-    protected void onMessage(@NonNull final JSONObject message) {
+    protected void onMessage(@Nonnull final JSONObject message) {
         String method = message.optString("method", "");
         if (method.equals("connect")) {
             JSONObject body = message.optJSONObject("body");
@@ -311,10 +311,12 @@ public class Centrifugo {
         if (method.equals("join")) {
             JoinMessage joinMessage = new JoinMessage(message);
             onJoinMessage(joinMessage);
+            return;
         }
         if (method.equals("leave")) {
             LeftMessage leftMessage = new LeftMessage(message);
             onLeftMessage(leftMessage);
+            return;
         }
         if (method.equals("presence")) {
             PresenceMessage presenceMessage = new PresenceMessage(message);
@@ -323,6 +325,7 @@ public class Centrifugo {
             if (listener != null) {
                 listener.onDownstreamMessage(presenceMessage);
             }
+            return;
         }
         onNewMessage(new DataMessage(message));
     }

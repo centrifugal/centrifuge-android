@@ -1,6 +1,6 @@
 package com.danilov.acentrifugo.listener;
 
-import com.danilov.acentrifugo.message.PresenceMessage;
+import com.danilov.acentrifugo.message.presence.PresenceMessage;
 
 /**
  * Created by semyon on 29.04.16.
