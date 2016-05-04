@@ -1,4 +1,4 @@
-package com.danilov.acentrifugo;
+package com.danilov.acentrifugo.subscription;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -20,7 +20,7 @@ import javax.annotation.Nullable;
  *
  * Created by semyon on 08.02.16.
  * */
-public class Subscription {
+public class SubscriptionRequest {
 
     @Nonnull
     private String channel;
@@ -31,16 +31,16 @@ public class Subscription {
     @Nonnull
     private String info = "";
 
-    public Subscription(@Nonnull final String channel) {
+    public SubscriptionRequest(@Nonnull final String channel) {
         this.channel = channel;
     }
 
-    public Subscription(@Nonnull final String channel, @Nullable final String channelToken) {
+    public SubscriptionRequest(@Nonnull final String channel, @Nullable final String channelToken) {
         this.channel = channel;
         this.channelToken = channelToken;
     }
 
-    public Subscription(@Nonnull final String channel, @Nullable final String channelToken, @Nonnull final String info) {
+    public SubscriptionRequest(@Nonnull final String channel, @Nullable final String channelToken, @Nonnull final String info) {
         this.channel = channel;
         this.channelToken = channelToken;
         this.info = info;

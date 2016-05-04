@@ -12,6 +12,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import android.util.Log;
 
+import com.danilov.acentrifugo.subscription.SubscriptionRequest;
+
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft;
 import org.java_websocket.drafts.Draft_17;
@@ -99,7 +101,7 @@ public class PushService extends Service {
 
     private List<String> subscribedChannels = new ArrayList<>();
 
-    private List<Subscription> channelsToSubscribe = new ArrayList<>();
+    private List<SubscriptionRequest> channelsToSubscribe = new ArrayList<>();
 
     private List<Message> pendingMessages = new LinkedList<>();
     private final Object handlerMonitor = new Object();
@@ -281,8 +283,8 @@ public class PushService extends Service {
             }
             PushService.this.state = STATE_CONNECTED;
             sendSystemBroadcast(new ConnectionInfo(ConnectionInfo.CONNECTED, ""));
-            for (Subscription subscription : channelsToSubscribe) {
-                subscribe(subscription);
+            for (SubscriptionRequest subscriptionRequest : channelsToSubscribe) {
+                subscribe(subscriptionRequest);
             }
             channelsToSubscribe.clear();
             return;
@@ -325,10 +327,10 @@ public class PushService extends Service {
     /**
      * Subscribing to channel
      */
-    private void subscribe(final Subscription subscription) {
+    private void subscribe(final SubscriptionRequest subscriptionRequest) {
         try {
             JSONObject jsonObject = new JSONObject();
-            fillSubscriptionJSON(jsonObject, subscription);
+            fillSubscriptionJSON(jsonObject, subscriptionRequest);
 
             JSONArray messages = new JSONArray();
             messages.put(jsonObject);
@@ -345,16 +347,16 @@ public class PushService extends Service {
      * @param jsonObject subscription message
      * @throws JSONException thrown to indicate a problem with the JSON API
      */
-    protected void fillSubscriptionJSON(final JSONObject jsonObject, final Subscription subscription) throws JSONException {
+    protected void fillSubscriptionJSON(final JSONObject jsonObject, final SubscriptionRequest subscriptionRequest) throws JSONException {
         jsonObject.put("uid", UUID.randomUUID().toString());
         jsonObject.put("method", "subscribe");
         JSONObject params = new JSONObject();
-        String channel = subscription.getChannel();
+        String channel = subscriptionRequest.getChannel();
         params.put("channel", channel);
         if (channel.startsWith(PRIVATE_CHANNEL_PREFIX)) {
-            params.put("sign", subscription.getChannelToken());
+            params.put("sign", subscriptionRequest.getChannelToken());
             params.put("client", clientId);
-            params.put("info", subscription.getInfo());
+            params.put("info", subscriptionRequest.getInfo());
         }
         jsonObject.put("params", params);
     }
@@ -484,14 +486,14 @@ public class PushService extends Service {
         public void handleMessage(final Message msg) {
             switch (msg.what) {
             case Messages.SUBSCRIBE_MESSAGE_ID: {
-                Subscription subscription = (Subscription) msg.obj;
+                SubscriptionRequest subscriptionRequest = (SubscriptionRequest) msg.obj;
                 if (client == null || state != STATE_CONNECTED) {
                     PushService.this.state = STATE_CONNECTING;
                     client = new PushClient(URI.create(host), new Draft_17());
                     client.start();
-                    channelsToSubscribe.add(subscription);
+                    channelsToSubscribe.add(subscriptionRequest);
                 } else {
-                    subscribe(subscription);
+                    subscribe(subscriptionRequest);
                 }
                 break;
             }

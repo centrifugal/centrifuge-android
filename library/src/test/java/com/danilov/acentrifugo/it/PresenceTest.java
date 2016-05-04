@@ -2,7 +2,7 @@ package com.danilov.acentrifugo.it;
 
 import com.danilov.acentrifugo.BuildConfig;
 import com.danilov.acentrifugo.Centrifugo;
-import com.danilov.acentrifugo.Subscription;
+import com.danilov.acentrifugo.subscription.SubscriptionRequest;
 import com.danilov.acentrifugo.TestWebapp;
 import com.danilov.acentrifugo.listener.ConnectionListener;
 import com.danilov.acentrifugo.listener.PartyListener;
@@ -130,8 +130,8 @@ public class PresenceTest {
 
             }
         });
-        Subscription subscription = new Subscription("test-channel");
-        centrifugo.subscribe(subscription);
+        SubscriptionRequest subscriptionRequest = new SubscriptionRequest("test-channel");
+        centrifugo.subscribe(subscriptionRequest);
         Assert.assertEquals("test-channel", channelSubscription.lockAndGet());
 
         final DataLock<JoinMessage> joinMessageDataLock = new DataLock<>();
@@ -216,8 +216,8 @@ public class PresenceTest {
 
             }
         });
-        Subscription subscription = new Subscription("test-channel");
-        centrifugo.subscribe(subscription);
+        SubscriptionRequest subscriptionRequest = new SubscriptionRequest("test-channel");
+        centrifugo.subscribe(subscriptionRequest);
         Assert.assertEquals("test-channel", channelSubscription.lockAndGet());
 
         final DataLock<JoinMessage> joinMessageDataLock = new DataLock<>();
@@ -303,8 +303,8 @@ public class PresenceTest {
 
             }
         });
-        Subscription subscription = new Subscription("test-channel");
-        centrifugo.subscribe(subscription);
+        SubscriptionRequest subscriptionRequest = new SubscriptionRequest("test-channel");
+        centrifugo.subscribe(subscriptionRequest);
         Assert.assertEquals("test-channel", channelSubscription.lockAndGet());
 
         final DataLock<JoinMessage> joinMessageDataLock = new DataLock<>();
@@ -400,8 +400,8 @@ public class PresenceTest {
 
             }
         });
-        Subscription subscription = new Subscription("test-channel");
-        centrifugo.subscribe(subscription);
+        SubscriptionRequest subscriptionRequest = new SubscriptionRequest("test-channel");
+        centrifugo.subscribe(subscriptionRequest);
         Assert.assertEquals("test-channel", channelSubscription.lockAndGet());
         return centrifugo;
     }

@@ -2,6 +2,8 @@ package com.danilov.acentrifugo;
 
 import android.os.Message;
 
+import com.danilov.acentrifugo.subscription.SubscriptionRequest;
+
 import org.json.JSONObject;
 
 /**
@@ -28,7 +30,7 @@ class Messages {
 
     public static Message getSubscribeMessage(final String channel, final String channelToken) {
         Message message = Message.obtain();
-        message.obj = new Subscription(channel, channelToken);
+        message.obj = new SubscriptionRequest(channel, channelToken);
         message.what = SUBSCRIBE_MESSAGE_ID;
         return message;
     }
