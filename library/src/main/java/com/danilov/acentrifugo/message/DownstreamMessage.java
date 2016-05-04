@@ -21,7 +21,7 @@ import org.json.JSONObject;
  * */
 public class DownstreamMessage {
 
-    protected String UUID;
+    protected String requestUUID;
 
     protected JSONObject body;
 
@@ -29,12 +29,12 @@ public class DownstreamMessage {
 
     public DownstreamMessage(final JSONObject jsonObject) {
         this.originalMessage = jsonObject;
-        UUID = jsonObject.optString("uid");
+        requestUUID = jsonObject.optString("uid");
         body = jsonObject.optJSONObject("body");
     }
 
-    public String getUUID() {
-        return UUID;
+    public String getRequestUUID() {
+        return requestUUID;
     }
 
     public JSONObject getBody() {

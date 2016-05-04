@@ -32,6 +32,9 @@ public class DataMessage extends DownstreamMessage {
     private JSONObject data;
 
     @Nonnull
+    private String UUID;
+
+    @Nonnull
     private String channel;
 
     @Nullable
@@ -43,6 +46,7 @@ public class DataMessage extends DownstreamMessage {
     public DataMessage(final JSONObject jsonObject) {
         super(jsonObject);
         data = body.optJSONObject("data");
+        UUID = body.optString("uid");
         channel = body.optString("channel");
         @Nullable JSONObject infoJSON = body.optJSONObject("info");
 
@@ -77,6 +81,11 @@ public class DataMessage extends DownstreamMessage {
     @Nonnull
     public Date getTimestamp() {
         return timestamp;
+    }
+
+    @Nonnull
+    public String getUUID() {
+        return UUID;
     }
 
 }

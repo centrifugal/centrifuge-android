@@ -12,6 +12,7 @@ import com.danilov.acentrifugo.listener.PartyListener;
 import com.danilov.acentrifugo.listener.SubscriptionListener;
 import com.danilov.acentrifugo.message.DataMessage;
 import com.danilov.acentrifugo.message.DownstreamMessage;
+import com.danilov.acentrifugo.message.history.HistoryMessage;
 import com.danilov.acentrifugo.message.presence.JoinMessage;
 import com.danilov.acentrifugo.message.presence.LeftMessage;
 import com.danilov.acentrifugo.message.presence.PresenceMessage;
@@ -334,14 +335,48 @@ public class Centrifugo {
         }
         if (method.equals("presence")) {
             PresenceMessage presenceMessage = new PresenceMessage(message);
-            String uuid = presenceMessage.getUUID();
+            String uuid = presenceMessage.getRequestUUID();
             DownstreamMessageListener listener = commandListeners.get(uuid);
             if (listener != null) {
                 listener.onDownstreamMessage(presenceMessage);
             }
             return;
         }
+        if (method.equals("history")) {
+            HistoryMessage historyMessage = new HistoryMessage(message);
+            String uuid = historyMessage.getRequestUUID();
+            DownstreamMessageListener listener = commandListeners.get(uuid);
+            if (listener != null) {
+                listener.onDownstreamMessage(historyMessage);
+            }
+            return;
+        }
         onNewMessage(new DataMessage(message));
+    }
+
+    public Future<HistoryMessage> requestHistory(final String channelName) {
+        JSONObject jsonObject = new JSONObject();
+        String commandId = UUID.randomUUID().toString();
+        try {
+            jsonObject.put("uid", commandId);
+            jsonObject.put("method", "history");
+            JSONObject params = new JSONObject();
+            params.put("channel", channelName);
+            jsonObject.put("params", params);
+        } catch (JSONException e) {
+            //FIXME error handling
+        }
+        final Future<HistoryMessage> historyMessage = new Future<>();
+        //don't let block client's thread
+        historyMessage.setRestrictedThread(client.getClientThread());
+        commandListeners.put(commandId, new DownstreamMessageListener() {
+            @Override
+            public void onDownstreamMessage(final DownstreamMessage message) {
+                historyMessage.setData((HistoryMessage) message);
+            }
+        });
+        client.send(jsonObject.toString());
+        return historyMessage;
     }
 
     public Future<PresenceMessage> requestPresence(final String channelName) {
