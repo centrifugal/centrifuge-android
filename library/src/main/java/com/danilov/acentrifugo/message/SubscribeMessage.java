@@ -2,7 +2,10 @@ package com.danilov.acentrifugo.message;
 
 import com.danilov.acentrifugo.message.DownstreamMessage;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
+
+import java.util.List;
 
 import javax.annotation.Nullable;
 
@@ -31,12 +34,16 @@ public class SubscribeMessage extends DownstreamMessage {
     @Nullable
     private Boolean status;
 
+    @Nullable
+    private JSONArray recoveredMessages;
+
     public SubscribeMessage(final JSONObject jsonObject) {
         super(jsonObject);
         channel = body.optString("channel");
         if (body.has("status")) {
             status = body.optBoolean("status");
         }
+        recoveredMessages = (JSONArray) body.optJSONArray("messages");
     }
 
     @Nullable
@@ -47,6 +54,11 @@ public class SubscribeMessage extends DownstreamMessage {
     @Nullable
     public Boolean getStatus() {
         return status;
+    }
+
+    @Nullable
+    public JSONArray getRecoveredMessages() {
+        return recoveredMessages;
     }
 
 }

@@ -120,6 +120,7 @@ public class Centrifugo {
 
     public void disconnect() {
         if (client != null && state == STATE_CONNECTED) {
+            state = STATE_DISCONNECTING;
             client.stop();
         }
     }
@@ -201,6 +202,10 @@ public class Centrifugo {
     }
 
     protected void onDisconnected(final int code, final String reason, final boolean remote) {
+        state = STATE_NOT_CONNECTED;
+        for (ActiveSubscription activeSubscription : subscribedChannels.values()) {
+            activeSubscription.setConnected(false);
+        }
         if (connectionListener != null) {
             connectionListener.onDisconnected(code, reason, remote);
         }
@@ -226,9 +231,15 @@ public class Centrifugo {
         }
     }
 
-    protected void onNewMessage(final DataMessage message) {
+    protected void onNewMessage(final DataMessage dataMessage) {
+        String uuid = dataMessage.getUUID();
+        //update last message id
+        ActiveSubscription activeSubscription = subscribedChannels.get(dataMessage.getChannel());
+        if (activeSubscription != null) {
+            activeSubscription.updateLastMessage(uuid);
+        }
         if (dataMessageListener != null) {
-            dataMessageListener.onNewDataMessage(message);
+            dataMessageListener.onNewDataMessage(dataMessage);
         }
     }
 
@@ -244,10 +255,14 @@ public class Centrifugo {
         }
     }
 
-    public void subscribe(final SubscriptionRequest subscriptionRequest) {
+    public void subscribe(@Nonnull final SubscriptionRequest subscriptionRequest) {
+        subscribe(subscriptionRequest, null);
+    }
+
+    public void subscribe(final SubscriptionRequest subscriptionRequest, @Nullable final String lastMessageId) {
         try {
             JSONObject jsonObject = new JSONObject();
-            String uuid = fillSubscriptionJSON(jsonObject, subscriptionRequest);
+            String uuid = fillSubscriptionJSON(jsonObject, subscriptionRequest, lastMessageId);
             commandListeners.put(uuid, new DownstreamMessageListener() {
                 @Override
                 public void onDownstreamMessage(final DownstreamMessage message) {
@@ -261,9 +276,25 @@ public class Centrifugo {
                     Boolean status = subscribeMessage.getStatus();
                     if (status != null && status) {
                         if (channelName != null) {
-                            ActiveSubscription activeSubscription = new ActiveSubscription(subscriptionRequest);
-                            subscribedChannels.put(activeSubscription.getChannel(), activeSubscription);
+                            ActiveSubscription activeSubscription;
+                            String channel = subscriptionRequest.getChannel();
+                            if (subscribedChannels.containsKey(channel)) {
+                                activeSubscription = subscribedChannels.get(channel);
+                            } else {
+                                activeSubscription = new ActiveSubscription(subscriptionRequest);
+                                subscribedChannels.put(channel, activeSubscription);
+                            }
+                            //mark as connected
+                            activeSubscription.setConnected(true);
                             onSubscribedToChannel(channelName);
+                        }
+                    }
+                    JSONArray recoveredMessages = subscribeMessage.getRecoveredMessages();
+                    if (recoveredMessages != null) {
+                        for (int i = 0; i < recoveredMessages.length(); i++) {
+                            JSONObject messageObj = recoveredMessages.optJSONObject(i);
+                            DataMessage dataMessage = DataMessage.fromBody(messageObj);
+                            onNewMessage(dataMessage);
                         }
                     }
                 }
@@ -283,7 +314,7 @@ public class Centrifugo {
      * @param jsonObject subscription message
      * @throws JSONException thrown to indicate a problem with the JSON API
      */
-    protected String fillSubscriptionJSON(final JSONObject jsonObject, final SubscriptionRequest subscriptionRequest) throws JSONException {
+    protected String fillSubscriptionJSON(final JSONObject jsonObject, final SubscriptionRequest subscriptionRequest, @Nullable final String lastMessageId) throws JSONException {
         String uuid = UUID.randomUUID().toString();
         jsonObject.put("uid", uuid);
         jsonObject.put("method", "subscribe");
@@ -294,6 +325,10 @@ public class Centrifugo {
             params.put("sign", subscriptionRequest.getChannelToken());
             params.put("client", clientId);
             params.put("info", subscriptionRequest.getInfo());
+        }
+        if (lastMessageId != null) {
+            params.put("last", lastMessageId);
+            params.put("recover", true);
         }
         jsonObject.put("params", params);
         return uuid;
@@ -323,6 +358,9 @@ public class Centrifugo {
                 subscribe(subscriptionRequest);
             }
             channelsToSubscribe.clear();
+            for (ActiveSubscription activeSubscription : subscribedChannels.values()) {
+                subscribe(activeSubscription.getInitialRequest(), activeSubscription.getLastMessageId());
+            }
             onConnected();
             return;
         }
@@ -364,12 +402,6 @@ public class Centrifugo {
             return;
         }
         DataMessage dataMessage = new DataMessage(message);
-        String uuid = dataMessage.getUUID();
-        //update last message id
-        ActiveSubscription activeSubscription = subscribedChannels.get(dataMessage.getChannel());
-        if (activeSubscription != null) {
-            activeSubscription.updateLastMessage(uuid);
-        }
         onNewMessage(dataMessage);
     }
 

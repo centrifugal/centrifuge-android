@@ -32,6 +32,9 @@ public class DownstreamMessage {
     @Nullable
     private String error;
 
+    public DownstreamMessage() {
+    }
+
     public DownstreamMessage(final JSONObject jsonObject) {
         this.originalMessage = jsonObject;
         requestUUID = jsonObject.optString("uid");
@@ -57,4 +60,13 @@ public class DownstreamMessage {
     public String getError() {
         return error;
     }
+
+    void setOriginalMessage(final JSONObject originalMessage) {
+        this.originalMessage = originalMessage;
+    }
+
+    void setBody(final JSONObject body) {
+        this.body = body;
+    }
+
 }

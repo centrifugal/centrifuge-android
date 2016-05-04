@@ -52,7 +52,7 @@ import okhttp3.Response;
  */
 @RunWith(RobolectricGradleTestRunner.class)
 @Config(constants = BuildConfig.class)
-public class HistoryTest {
+public class HistoryTests {
 
     public GenericContainer centrifugo;
 

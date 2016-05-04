@@ -49,7 +49,7 @@ import okhttp3.Response;
  * */
 @RunWith(RobolectricGradleTestRunner.class)
 @Config(constants = BuildConfig.class)
-public class PresenceTest {
+public class PresenceTests {
 
     public GenericContainer centrifugo;
 

@@ -43,8 +43,23 @@ public class DataMessage extends DownstreamMessage {
     @Nonnull
     private Date timestamp;
 
+    public static DataMessage fromBody(final JSONObject jsonObject) {
+        DataMessage dataMessage = new DataMessage();
+        dataMessage.setBody(jsonObject);
+        dataMessage.setOriginalMessage(jsonObject);
+        dataMessage.init(jsonObject);
+        return dataMessage;
+    }
+
+    public DataMessage() {
+    }
+
     public DataMessage(final JSONObject jsonObject) {
         super(jsonObject);
+        init(body);
+    }
+
+    private void init(@Nonnull final JSONObject body) {
         data = body.optJSONObject("data");
         UUID = body.optString("uid");
         channel = body.optString("channel");

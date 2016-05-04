@@ -29,6 +29,8 @@ public class ActiveSubscription {
     @Nullable
     private String lastMessageId;
 
+    private boolean connected = false;
+
     public ActiveSubscription(@Nonnull final SubscriptionRequest initialRequest) {
         this.initialRequest = initialRequest;
     }
@@ -55,6 +57,14 @@ public class ActiveSubscription {
     @Nonnull
     public String getInfo() {
         return initialRequest.getInfo();
+    }
+
+    public boolean isConnected() {
+        return connected;
+    }
+
+    public void setConnected(final boolean connected) {
+        this.connected = connected;
     }
 
 }
