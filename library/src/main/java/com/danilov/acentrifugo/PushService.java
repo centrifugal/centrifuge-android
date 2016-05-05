@@ -8,10 +8,11 @@ import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.text.TextUtils;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import android.util.Log;
+
+import com.danilov.acentrifugo.subscription.SubscriptionRequest;
 
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft;
@@ -100,7 +101,7 @@ public class PushService extends Service {
 
     private List<String> subscribedChannels = new ArrayList<>();
 
-    private List<SubscribeMessage> channelsToSubscribe = new ArrayList<>();
+    private List<SubscriptionRequest> channelsToSubscribe = new ArrayList<>();
 
     private List<Message> pendingMessages = new LinkedList<>();
     private final Object handlerMonitor = new Object();
@@ -172,13 +173,13 @@ public class PushService extends Service {
      * @param token user's token, passed from web application
      * @param tokenTimestamp token's timestamp, passed from web application
      */
-    public static void subscribe(@NonNull final Context context,
-                             @NonNull final String host,
-                             @NonNull final String channel,
+    public static void subscribe(@Nonnull final Context context,
+                             @Nonnull final String host,
+                             @Nonnull final String channel,
                              @Nullable final String channelToken,
-                             @NonNull final String userId,
-                             @NonNull final String token,
-                             @NonNull final String tokenTimestamp) {
+                             @Nonnull final String userId,
+                             @Nonnull final String token,
+                             @Nonnull final String tokenTimestamp) {
         Intent intent = new Intent(context, PushService.class);
         intent.putExtra(HOST_EXTRA, host);
         intent.putExtra(CHANNEL_EXTRA, channel);
@@ -198,11 +199,11 @@ public class PushService extends Service {
      * @param token user's token, passed from web application
      * @param tokenTimestamp token's timestamp, passed from web application
      */
-    public static void subscribe(@NonNull final Context context,
-                             @NonNull final String host,
-                             @NonNull final String userId,
-                             @NonNull final String token,
-                             @NonNull final String tokenTimestamp) {
+    public static void subscribe(@Nonnull final Context context,
+                             @Nonnull final String host,
+                             @Nonnull final String userId,
+                             @Nonnull final String token,
+                             @Nonnull final String tokenTimestamp) {
         subscribe(context, host, context.getString(R.string.centrifugo_channel), null, userId, token, tokenTimestamp);
     }
 
@@ -216,10 +217,10 @@ public class PushService extends Service {
      * @param token user's token, passed from web application
      * @param tokenTimestamp token's timestamp, passed from web application
      */
-    public static void subscribe(@NonNull final Context context,
-                             @NonNull final String userId,
-                             @NonNull final String token,
-                             @NonNull final String tokenTimestamp) {
+    public static void subscribe(@Nonnull final Context context,
+                             @Nonnull final String userId,
+                             @Nonnull final String token,
+                             @Nonnull final String tokenTimestamp) {
         subscribe(context, context.getString(R.string.centrifugo_host), userId, token, tokenTimestamp);
     }
 
@@ -273,7 +274,7 @@ public class PushService extends Service {
      * client's behaviour after connection and before subscription
      * @param message message to handle
      */
-    protected void onMessage(@NonNull final JSONObject message) {
+    protected void onMessage(@Nonnull final JSONObject message) {
         String method = message.optString("method", "");
         if (method.equals("connect")) {
             JSONObject body = message.optJSONObject("body");
@@ -281,9 +282,9 @@ public class PushService extends Service {
                 PushService.this.clientId = body.optString("client");
             }
             PushService.this.state = STATE_CONNECTED;
-            sendSystemBroadcast(new Info(Info.CONNECTED, ""));
-            for (SubscribeMessage subscribeMessage : channelsToSubscribe) {
-                subscribe(subscribeMessage);
+            sendSystemBroadcast(new ConnectionInfo(ConnectionInfo.CONNECTED, ""));
+            for (SubscriptionRequest subscriptionRequest : channelsToSubscribe) {
+                subscribe(subscriptionRequest);
             }
             channelsToSubscribe.clear();
             return;
@@ -300,7 +301,7 @@ public class PushService extends Service {
                 Boolean status = body.optBoolean("status");
                 if (status) {
                     subscribedChannels.add(channelName);
-                    sendSystemBroadcast(new Info(Info.SUBSCRIBED_TO_CHANNEL, channelName));
+                    sendSystemBroadcast(new ConnectionInfo(ConnectionInfo.SUBSCRIBED_TO_CHANNEL, channelName));
                 }
             }
             return;
@@ -316,20 +317,20 @@ public class PushService extends Service {
         sendBroadcast(intent, packageName + ".permission.CENTRIFUGO_PUSH");
     }
 
-    private void sendSystemBroadcast(final Info info) {
+    private void sendSystemBroadcast(final ConnectionInfo connectionInfo) {
         String packageName = getPackageName();
         Intent intent = new Intent(packageName + ".action.CENTRIFUGO_PUSH");
-        intent.putExtra("info", info);
+        intent.putExtra("info", connectionInfo);
         sendBroadcast(intent, packageName + ".permission.CENTRIFUGO_PUSH");
     }
 
     /**
      * Subscribing to channel
      */
-    private void subscribe(final SubscribeMessage subscribeMessage) {
+    private void subscribe(final SubscriptionRequest subscriptionRequest) {
         try {
             JSONObject jsonObject = new JSONObject();
-            fillSubscriptionJSON(jsonObject, subscribeMessage);
+            fillSubscriptionJSON(jsonObject, subscriptionRequest);
 
             JSONArray messages = new JSONArray();
             messages.put(jsonObject);
@@ -346,17 +347,16 @@ public class PushService extends Service {
      * @param jsonObject subscription message
      * @throws JSONException thrown to indicate a problem with the JSON API
      */
-    protected void fillSubscriptionJSON(final JSONObject jsonObject, final SubscribeMessage subscribeMessage) throws JSONException {
+    protected void fillSubscriptionJSON(final JSONObject jsonObject, final SubscriptionRequest subscriptionRequest) throws JSONException {
         jsonObject.put("uid", UUID.randomUUID().toString());
         jsonObject.put("method", "subscribe");
         JSONObject params = new JSONObject();
-        String channel = subscribeMessage.channel;
+        String channel = subscriptionRequest.getChannel();
         params.put("channel", channel);
         if (channel.startsWith(PRIVATE_CHANNEL_PREFIX)) {
-            Assert.isTrue(!TextUtils.isEmpty(subscribeMessage.channelToken));
-            params.put("sign", subscribeMessage.channelToken);
+            params.put("sign", subscriptionRequest.getChannelToken());
             params.put("client", clientId);
-            params.put("info", "");
+            params.put("info", subscriptionRequest.getInfo());
         }
         jsonObject.put("params", params);
     }
@@ -377,7 +377,7 @@ public class PushService extends Service {
         Log.e(TAG, "onError: ", ex);
     }
 
-    public void onSubscriptionError(@NonNull final String subscriptionError) {
+    public void onSubscriptionError(@Nonnull final String subscriptionError) {
         Log.e(TAG, "subscription error: " + subscriptionError);
     }
 
@@ -486,14 +486,14 @@ public class PushService extends Service {
         public void handleMessage(final Message msg) {
             switch (msg.what) {
             case Messages.SUBSCRIBE_MESSAGE_ID: {
-                SubscribeMessage subscribeMessage = (SubscribeMessage) msg.obj;
+                SubscriptionRequest subscriptionRequest = (SubscriptionRequest) msg.obj;
                 if (client == null || state != STATE_CONNECTED) {
                     PushService.this.state = STATE_CONNECTING;
                     client = new PushClient(URI.create(host), new Draft_17());
                     client.start();
-                    channelsToSubscribe.add(subscribeMessage);
+                    channelsToSubscribe.add(subscriptionRequest);
                 } else {
-                    subscribe(subscribeMessage);
+                    subscribe(subscriptionRequest);
                 }
                 break;
             }
