@@ -47,7 +47,7 @@ public class DataLock<T> {
                 }
                 return data;
             }
-            if (checkData()) {
+            if (checkData() || internalLock.getCount() == 0) {
                 return data;
             }
         }

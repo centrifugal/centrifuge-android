@@ -1,10 +1,15 @@
 package com.danilov.acentrifugo;
 
+import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.util.Log;
 
 import com.danilov.acentrifugo.async.Future;
+import com.danilov.acentrifugo.config.ReconnectConfig;
 import com.danilov.acentrifugo.credentials.Token;
 import com.danilov.acentrifugo.credentials.User;
 import com.danilov.acentrifugo.listener.ConnectionListener;
@@ -33,11 +38,17 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 
 import java.net.URI;
+import java.nio.channels.NotYetConnectedException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * This file is part of ACentrifugo.
@@ -84,6 +95,9 @@ public class Centrifugo {
 
     private String info;
 
+    @Nullable
+    private ReconnectConfig reconnectConfig;
+
     private Client client;
 
     private int state = STATE_NOT_CONNECTED;
@@ -106,7 +120,7 @@ public class Centrifugo {
 
     private Map<String, DownstreamMessageListener> commandListeners = new HashMap<>();
 
-    private Centrifugo(final String wsURI, final String userId, final String clientId, final String token, final String tokenTimestamp, final String info) {
+    protected Centrifugo(final String wsURI, final String userId, final String clientId, final String token, final String tokenTimestamp, final String info) {
         this.wsURI = wsURI;
         this.userId = userId;
         this.clientId = clientId;
@@ -213,6 +227,17 @@ public class Centrifugo {
         }
         if (connectionListener != null) {
             connectionListener.onDisconnected(code, reason, remote);
+        }
+        //connection closed by remote host or was lost
+        if (remote) {
+            if (reconnectConfig != null) {
+                //reconnect enabled
+                if (reconnectConfig.shouldReconnect()) {
+                    reconnectConfig.incReconnectCount();
+                    long reconnectDelay = reconnectConfig.getReconnectDelay();
+                    scheduleReconnect(reconnectDelay);
+                }
+            }
         }
     }
 
@@ -461,9 +486,27 @@ public class Centrifugo {
         return presenceMessage;
     }
 
+    private void scheduleReconnect(@Nonnegative final long delay) {
+        final Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                connect();
+                timer.cancel();
+                this.cancel();
+            }
+        }, delay);
+    }
+
+    public void setReconnectConfig(@Nullable final ReconnectConfig reconnectConfig) {
+        this.reconnectConfig = reconnectConfig;
+    }
+
     private class Client extends WebSocketClient {
 
         private Thread clientThread;
+
+        private ExecutorService executor = Executors.newSingleThreadExecutor();
 
         public Client(final URI serverURI, final Draft draft) {
             super(serverURI, draft);
@@ -506,7 +549,6 @@ public class Centrifugo {
         @Override
         public void onClose(final int code, final String reason, final boolean remote) {
             Centrifugo.this.onClose(code, reason, remote);
-            clientThread.interrupt();
         }
 
         @Override
@@ -514,7 +556,6 @@ public class Centrifugo {
             Centrifugo.this.onError(ex);
             try {
                 this.closeBlocking();
-                clientThread.interrupt();
             } catch (InterruptedException e) {
                 Log.e(TAG, "Error while closing WS connection: " + e.getMessage(), e);
             }
@@ -525,12 +566,36 @@ public class Centrifugo {
         }
 
         public void stop() {
-            try {
-                this.closeBlocking();
-                clientThread.interrupt();
-            } catch (InterruptedException e) {
-                Log.e(TAG, "Error while closing WS connection: " + e.getMessage(), e);
-            }
+            executor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        Client.this.closeBlocking();
+                    } catch (InterruptedException e) {
+                        Log.e(TAG, "Error while closing WS connection: " + e.getMessage(), e);
+                    }
+                }
+            });
+        }
+
+        @Override
+        public void send(final byte[] data) throws NotYetConnectedException {
+            executor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    Client.super.send(data);
+                }
+            });
+        }
+
+        @Override
+        public void send(final String text) throws NotYetConnectedException {
+            executor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    Client.super.send(text);
+                }
+            });
         }
 
     }
@@ -546,6 +611,9 @@ public class Centrifugo {
 
         @Nullable
         private String info;
+
+        @Nullable
+        private ReconnectConfig reconnectConfig;
 
         public Builder(@Nonnull final String wsURI) {
             this.wsURI = wsURI;
@@ -566,6 +634,11 @@ public class Centrifugo {
             return this;
         }
 
+        public Builder setReconnectConfig(@Nullable final ReconnectConfig reconnectConfig) {
+            this.reconnectConfig = reconnectConfig;
+            return this;
+        }
+
         public Centrifugo build() {
             if (user == null) {
                 throw new NullPointerException("user info not provided");
@@ -573,7 +646,9 @@ public class Centrifugo {
             if (token == null) {
                 throw new NullPointerException("token not provided");
             }
-            return new Centrifugo(wsURI, user.getUser(), user.getClient(), token.getToken(), token.getTokenTimestamp(), info);
+            Centrifugo centrifugo = new Centrifugo(wsURI, user.getUser(), user.getClient(), token.getToken(), token.getTokenTimestamp(), info);
+            centrifugo.setReconnectConfig(reconnectConfig);
+            return centrifugo;
         }
 
     }
