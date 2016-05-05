@@ -5,6 +5,8 @@ import javax.annotation.Nullable;
 import android.util.Log;
 
 import com.danilov.acentrifugo.async.Future;
+import com.danilov.acentrifugo.credentials.Token;
+import com.danilov.acentrifugo.credentials.User;
 import com.danilov.acentrifugo.listener.ConnectionListener;
 import com.danilov.acentrifugo.listener.DataMessageListener;
 import com.danilov.acentrifugo.listener.DownstreamMessageListener;
@@ -70,7 +72,7 @@ public class Centrifugo {
 
     private static final int STATE_CONNECTING = 4;
 
-    private String host;
+    private String wsURI;
 
     private String userId;
 
@@ -80,11 +82,13 @@ public class Centrifugo {
 
     private String tokenTimestamp;
 
+    private String info;
+
     private Client client;
 
     private int state = STATE_NOT_CONNECTED;
 
-    private Map<String, ActiveSubscription> subscribedChannels = new HashMap();
+    private Map<String, ActiveSubscription> subscribedChannels = new HashMap<>();
 
     private List<SubscriptionRequest> channelsToSubscribe = new ArrayList<>();
 
@@ -102,18 +106,19 @@ public class Centrifugo {
 
     private Map<String, DownstreamMessageListener> commandListeners = new HashMap<>();
 
-    public Centrifugo(final String host, final String userId, final String clientId, final String token, final String tokenTimestamp) {
-        this.host = host;
+    private Centrifugo(final String wsURI, final String userId, final String clientId, final String token, final String tokenTimestamp, final String info) {
+        this.wsURI = wsURI;
         this.userId = userId;
         this.clientId = clientId;
         this.token = token;
         this.tokenTimestamp = tokenTimestamp;
+        this.info = info;
     }
 
     public void connect() {
-        if (client == null || state != STATE_CONNECTED) {
+        if (client == null || (state != STATE_CONNECTED && state != STATE_CONNECTING)) {
             this.state = STATE_CONNECTING;
-            client = new Client(URI.create(host), new Draft_17());
+            client = new Client(URI.create(wsURI), new Draft_17());
             client.start();
         }
     }
@@ -184,7 +189,7 @@ public class Centrifugo {
         JSONObject params = new JSONObject();
         params.put("user", userId);
         params.put("timestamp", tokenTimestamp);
-        params.put("info", "");
+        params.put("info", info);
         params.put("token", token);
         jsonObject.put("params", params);
     }
@@ -217,6 +222,7 @@ public class Centrifugo {
 
     public void onError(final Exception ex) {
         Log.e(TAG, "onError: ", ex);
+        state = STATE_ERROR;
     }
 
     protected void onSubscriptionError(@Nullable final String subscriptionError) {
@@ -525,6 +531,49 @@ public class Centrifugo {
             } catch (InterruptedException e) {
                 Log.e(TAG, "Error while closing WS connection: " + e.getMessage(), e);
             }
+        }
+
+    }
+
+    public static class Builder {
+
+        @Nonnull
+        private String wsURI;
+
+        private User user;
+
+        private Token token;
+
+        @Nullable
+        private String info;
+
+        public Builder(@Nonnull final String wsURI) {
+            this.wsURI = wsURI;
+        }
+
+        public Builder setToken(@Nonnull final Token token) {
+            this.token = token;
+            return this;
+        }
+
+        public Builder setUser(@Nonnull final User user) {
+            this.user = user;
+            return this;
+        }
+
+        public Builder setInfo(@Nullable final String info) {
+            this.info = info;
+            return this;
+        }
+
+        public Centrifugo build() {
+            if (user == null) {
+                throw new NullPointerException("user info not provided");
+            }
+            if (token == null) {
+                throw new NullPointerException("token not provided");
+            }
+            return new Centrifugo(wsURI, user.getUser(), user.getClient(), token.getToken(), token.getTokenTimestamp(), info);
         }
 
     }

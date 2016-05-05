@@ -1,6 +1,7 @@
 package com.danilov.acentrifugo.credentials;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * This file is part of ACentrifugo.
@@ -24,15 +25,15 @@ public class User {
     @Nonnull
     private String user;
 
-    @Nonnull
+    @Nullable
     private String client;
 
-    public User(@Nonnull final String user, @Nonnull final String client) {
+    public User(@Nonnull final String user, @Nullable final String client) {
         this.user = user;
         this.client = client;
     }
 
-    @Nonnull
+    @Nullable
     public String getClient() {
         return client;
     }

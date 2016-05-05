@@ -3,6 +3,8 @@ package com.danilov.acentrifugo.it;
 import com.danilov.acentrifugo.BuildConfig;
 import com.danilov.acentrifugo.Centrifugo;
 import com.danilov.acentrifugo.TestWebapp;
+import com.danilov.acentrifugo.credentials.Token;
+import com.danilov.acentrifugo.credentials.User;
 import com.danilov.acentrifugo.listener.ConnectionListener;
 import com.danilov.acentrifugo.listener.DataMessageListener;
 import com.danilov.acentrifugo.listener.SubscriptionListener;
@@ -91,8 +93,10 @@ public class RecoveryTests {
         String userId = loginObject.optString("userId");
         String timestamp = loginObject.optString("timestamp");
         String token = loginObject.optString("token");
-        Centrifugo centrifugo = new Centrifugo(centrifugoAddress,
-                userId, null, token, timestamp);
+        Centrifugo centrifugo = new Centrifugo.Builder(centrifugoAddress)
+                .setUser(new User(userId, null))
+                .setToken(new Token(token, timestamp))
+                .build();
 
         final DataLock<Boolean> connected = new DataLock<>();
         final DataLock<Boolean> disconnected = new DataLock<>();
