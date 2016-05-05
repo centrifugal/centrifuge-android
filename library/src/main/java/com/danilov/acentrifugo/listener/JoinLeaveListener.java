@@ -20,7 +20,7 @@ import com.danilov.acentrifugo.message.presence.LeftMessage;
  *
  * Created by semyon on 29.04.16.
  * */
-public interface PartyListener {
+public interface JoinLeaveListener {
 
     void onJoin(final JoinMessage joinMessage);
 
