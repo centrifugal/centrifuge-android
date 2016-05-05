@@ -5,7 +5,7 @@ import com.danilov.acentrifugo.Centrifugo;
 import com.danilov.acentrifugo.subscription.SubscriptionRequest;
 import com.danilov.acentrifugo.TestWebapp;
 import com.danilov.acentrifugo.listener.ConnectionListener;
-import com.danilov.acentrifugo.listener.PartyListener;
+import com.danilov.acentrifugo.listener.JoinLeaveListener;
 import com.danilov.acentrifugo.listener.SubscriptionListener;
 import com.danilov.acentrifugo.message.presence.JoinMessage;
 import com.danilov.acentrifugo.message.presence.LeftMessage;
@@ -135,7 +135,7 @@ public class PresenceTests {
         Assert.assertEquals("test-channel", channelSubscription.lockAndGet());
 
         final DataLock<JoinMessage> joinMessageDataLock = new DataLock<>();
-        centrifugo.setPartyListener(new PartyListener() {
+        centrifugo.setJoinLeaveListener(new JoinLeaveListener() {
             @Override
             public void onJoin(final JoinMessage joinMessage) {
                 joinMessageDataLock.setData(joinMessage);
@@ -222,7 +222,7 @@ public class PresenceTests {
 
         final DataLock<JoinMessage> joinMessageDataLock = new DataLock<>();
         final DataLock<LeftMessage> leftMessageDataLock = new DataLock<>();
-        centrifugo.setPartyListener(new PartyListener() {
+        centrifugo.setJoinLeaveListener(new JoinLeaveListener() {
             @Override
             public void onJoin(final JoinMessage joinMessage) {
                 joinMessageDataLock.setData(joinMessage);
@@ -309,7 +309,7 @@ public class PresenceTests {
 
         final DataLock<JoinMessage> joinMessageDataLock = new DataLock<>();
         final DataLock<LeftMessage> leftMessageDataLock = new DataLock<>();
-        centrifugo.setPartyListener(new PartyListener() {
+        centrifugo.setJoinLeaveListener(new JoinLeaveListener() {
             @Override
             public void onJoin(final JoinMessage joinMessage) {
                 joinMessageDataLock.setData(joinMessage);

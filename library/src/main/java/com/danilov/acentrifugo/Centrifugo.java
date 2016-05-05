@@ -8,7 +8,7 @@ import com.danilov.acentrifugo.async.Future;
 import com.danilov.acentrifugo.listener.ConnectionListener;
 import com.danilov.acentrifugo.listener.DataMessageListener;
 import com.danilov.acentrifugo.listener.DownstreamMessageListener;
-import com.danilov.acentrifugo.listener.PartyListener;
+import com.danilov.acentrifugo.listener.JoinLeaveListener;
 import com.danilov.acentrifugo.listener.SubscriptionListener;
 import com.danilov.acentrifugo.message.DataMessage;
 import com.danilov.acentrifugo.message.DownstreamMessage;
@@ -98,7 +98,7 @@ public class Centrifugo {
     private SubscriptionListener subscriptionListener;
 
     @Nullable
-    private PartyListener partyListener;
+    private JoinLeaveListener joinLeaveListener;
 
     private Map<String, DownstreamMessageListener> commandListeners = new HashMap<>();
 
@@ -126,12 +126,12 @@ public class Centrifugo {
     }
 
     @Nullable
-    public PartyListener getPartyListener() {
-        return partyListener;
+    public JoinLeaveListener getJoinLeaveListener() {
+        return joinLeaveListener;
     }
 
-    public void setPartyListener(@Nullable final PartyListener partyListener) {
-        this.partyListener = partyListener;
+    public void setJoinLeaveListener(@Nullable final JoinLeaveListener joinLeaveListener) {
+        this.joinLeaveListener = joinLeaveListener;
     }
 
     public void setSubscriptionListener(@Nullable final SubscriptionListener subscriptionListener) {
@@ -244,14 +244,14 @@ public class Centrifugo {
     }
 
     protected void onLeftMessage(final LeftMessage leftMessage) {
-        if (partyListener != null) {
-            partyListener.onLeave(leftMessage);
+        if (joinLeaveListener != null) {
+            joinLeaveListener.onLeave(leftMessage);
         }
     }
 
     protected void onJoinMessage(final JoinMessage joinMessage) {
-        if (partyListener != null) {
-            partyListener.onJoin(joinMessage);
+        if (joinLeaveListener != null) {
+            joinLeaveListener.onJoin(joinMessage);
         }
     }
 
