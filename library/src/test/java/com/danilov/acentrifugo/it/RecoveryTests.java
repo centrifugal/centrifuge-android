@@ -76,7 +76,7 @@ public class RecoveryTests {
     }
 
     @Test
-    public void testSendReceiveMessage() throws Exception {
+    public void testRecoveryAfterDisconnect() throws Exception {
         String containerIpAddress = centrifugo.getContainerIpAddress() + ":" + centrifugo.getMappedPort(8000);
         String centrifugoAddress = "ws://" + containerIpAddress + "/connection/websocket";
         String centrifugoApiAddress = "http://" + containerIpAddress + "/api/";

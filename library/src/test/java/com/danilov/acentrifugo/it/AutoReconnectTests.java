@@ -59,7 +59,7 @@ public class AutoReconnectTests {
     }
 
     @Test
-    public void testSendReceiveMessage() throws Exception {
+    public void testAutoReconnectAfterConnectionLoss() throws Exception {
         String containerIpAddress = centrifugo.getContainerIpAddress() + ":" + centrifugo.getMappedPort(8000);
         String centrifugoAddress = "ws://" + containerIpAddress + "/connection/websocket";
         String centrifugoApiAddress = "http://" + containerIpAddress + "/api/";
