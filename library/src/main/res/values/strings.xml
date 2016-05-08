@@ -1,5 +1,3 @@
 <resources>
     <string name="app_name">Library</string>
-    <string name="centrifugo_channel"/>
-    <string name="centrifugo_host"/>
 </resources>

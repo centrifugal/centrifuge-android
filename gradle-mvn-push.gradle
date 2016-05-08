@@ -17,36 +17,35 @@
 apply plugin: 'maven'
 apply plugin: 'signing'
 
+
 def isReleaseBuild() {
     return VERSION_NAME.contains("SNAPSHOT") == false
 }
 
-//def getReleaseRepositoryUrl() {
-//    return hasProperty('RELEASE_REPOSITORY_URL') ? RELEASE_REPOSITORY_URL
-//            : "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
-//}
-//
-//def getSnapshotRepositoryUrl() {
-//    return hasProperty('SNAPSHOT_REPOSITORY_URL') ? SNAPSHOT_REPOSITORY_URL
-//            : "https://oss.sonatype.org/content/repositories/snapshots/"
-//}
-
 def getReleaseRepositoryUrl() {
-    return hasProperty('RELEASE_REPOSITORY_URL') ? RELEASE_REPOSITORY_URL
-            : ""
+    Properties _properties = new Properties()
+    _properties.load(project.rootProject.file('local.properties').newDataInputStream())
+    return _properties.getProperty('RELEASE_REPOSITORY_URL') != null ? _properties.getProperty('RELEASE_REPOSITORY_URL')
+            : "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
 }
 
 def getSnapshotRepositoryUrl() {
-    return hasProperty('SNAPSHOT_REPOSITORY_URL') ? SNAPSHOT_REPOSITORY_URL
-            : ""
+    Properties _properties = new Properties()
+    _properties.load(project.rootProject.file('local.properties').newDataInputStream())
+    return _properties.getProperty('SNAPSHOT_REPOSITORY_URL') != null ? _properties.getProperty('SNAPSHOT_REPOSITORY_URL')
+            : "https://oss.sonatype.org/content/repositories/snapshots/"
 }
 
 def getRepositoryUsername() {
-    return hasProperty('NEXUS_USERNAME') ? NEXUS_USERNAME : ""
+    Properties _properties = new Properties()
+    _properties.load(project.rootProject.file('local.properties').newDataInputStream())
+    return _properties.getProperty('NEXUS_USERNAME') != null ? _properties.getProperty('NEXUS_USERNAME') : ""
 }
 
 def getRepositoryPassword() {
-    return hasProperty('NEXUS_PASSWORD') ? NEXUS_PASSWORD : ""
+    Properties _properties = new Properties()
+    _properties.load(project.rootProject.file('local.properties').newDataInputStream())
+    return _properties.getProperty('NEXUS_PASSWORD') != null ? _properties.getProperty('NEXUS_PASSWORD') : ""
 }
 
 afterEvaluate { project ->

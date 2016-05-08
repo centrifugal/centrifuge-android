@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.danilov.acentrifugo.test" >
+    package="com.centrifugal.centrifuge.android.test" >
+
+    <uses-permission android:name="android.permission.INTERNET"/>
 
     <application
         android:allowBackup="true"
@@ -8,16 +10,16 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme" >
+
         <activity
-            android:name=".MainActivity"
+            android:name="com.centrifugal.centrifuge.android.test.MainActivity"
             android:label="@string/title_activity_main"
             android:theme="@style/AppTheme.NoActionBar" >
-
-            <intent-filter>
-                <action android:name="android.intent.action.LAUNCHER"/>
+            <intent-filter >
+                <action android:name="android.intent.action.MAIN" />
                 <action android:name="android.intent.action.DEFAULT"/>
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
         </activity>
     </application>
 

@@ -1,7 +1,7 @@
-# ACentrifugo
+# centrifuge-android
 Centrifugo android client
 
-###Usage
+### Usage
 </br>
 add
 ```
@@ -10,7 +10,7 @@ maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
 to <b>repositories</b>
 and 
 ```
-compile 'com.github.sammyvimes:acentrifugo:0.35-SNAPSHOT'
+compile 'com.github.sammyvimes:acentrifugo:0.36-SNAPSHOT'
 ```
 to <b>dependencies</b> in your <b>build.gradle</b>    
 
@@ -46,36 +46,11 @@ android {
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     testCompile 'junit:junit:4.12'
-    compile 'com.github.sammyvimes:acentrifugo:0.35-SNAPSHOT'
+    compile 'com.github.sammyvimes:acentrifugo:0.36-SNAPSHOT'
 }
 
 ```
 
-Next:
-in your AndroidManifest add
-```
-  <permission
-      android:name="${applicationId}.permission.CENTRIFUGO_PUSH"
-      android:protectionLevel="signature"/>
-  <uses-permission android:name="${applicationId}.permission.CENTRIFUGO_PUSH"/>
-```
-and create a <b>BroadcastReceiver</b>
-```
-  <receiver android:name=".PushReceiver"
-            android:exported="false">
-      <intent-filter>
-          <action android:name="${applicationId}.action.CENTRIFUGO_PUSH"/>
-      </intent-filter>
-  </receiver>
-```
-
-When you are ready to start push-service (you have id of client, token and it's timestamp), just call 
-```
-PushService.subscribe(....)
-//note that there are multiple implementations of that function, that take different parameters
-```
-
-Example application:
-https://github.com/SammyVimes/VersionMonitorAndroid
+Have a look at example [application](https://github.com/SammyVimes/ACentrifugo/tree/dev/app)
     
     
