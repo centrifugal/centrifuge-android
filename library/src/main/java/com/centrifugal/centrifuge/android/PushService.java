@@ -191,41 +191,6 @@ public class PushService extends Service {
     }
 
     /**
-     * Starts push-listener service with given host, userId, token and token's timestamp
-     * channel must be placed in string resources with id string#centrifugo_channel
-     * @param context service starter
-     * @param host your centrifugo's host (e.g. "ws://127.0.0.1:8000/connection/websocket"
-     * @param userId id of the user, passed from web application
-     * @param token user's token, passed from web application
-     * @param tokenTimestamp token's timestamp, passed from web application
-     */
-    public static void subscribe(@Nonnull final Context context,
-                             @Nonnull final String host,
-                             @Nonnull final String userId,
-                             @Nonnull final String token,
-                             @Nonnull final String tokenTimestamp) {
-        subscribe(context, host, context.getString(com.centrifugal.centrifuge.R.string.centrifugo_channel), null, userId, token, tokenTimestamp);
-    }
-
-    /**
-     * Starts push-listener service with given userId, token and token's timestamp
-     * host and channel must be placed in string resources with ids
-     * string#centrifugo_host for host
-     * string#centrifugo_channel for channel
-     * @param context service starter
-     * @param userId id of the user, passed from web application
-     * @param token user's token, passed from web application
-     * @param tokenTimestamp token's timestamp, passed from web application
-     */
-    public static void subscribe(@Nonnull final Context context,
-                             @Nonnull final String userId,
-                             @Nonnull final String token,
-                             @Nonnull final String tokenTimestamp) {
-        subscribe(context, context.getString(com.centrifugal.centrifuge.R.string.centrifugo_host), userId, token, tokenTimestamp);
-    }
-
-
-    /**
      * WebSocket connection successful opening handler
      * You don't need to override this method, unless you want to change
      * client's behaviour before connection

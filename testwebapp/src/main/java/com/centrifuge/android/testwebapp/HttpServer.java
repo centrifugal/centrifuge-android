@@ -48,7 +48,7 @@ public class HttpServer extends NanoHTTPD {
 
     private Response onTokenRequest(final IHTTPSession session) {
         String timestamp = System.currentTimeMillis() + "";
-        String userId = "test-user-id";
+        String userId = "";
         String info = "";
         String num = session.getParms().get("userId");
         userId += num;

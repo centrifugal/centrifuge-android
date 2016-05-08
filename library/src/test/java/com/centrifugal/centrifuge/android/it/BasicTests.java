@@ -1,6 +1,5 @@
 package com.centrifugal.centrifuge.android.it;
 
-import com.centrifugal.centrifuge.BuildConfig;
 import com.centrifugal.centrifuge.android.Centrifugo;
 import com.centrifugal.centrifuge.android.credentials.Token;
 import com.centrifugal.centrifuge.android.credentials.User;
@@ -13,6 +12,7 @@ import com.centrifugal.centrifuge.android.listener.SubscriptionListener;
 import com.centrifugal.centrifuge.android.message.DataMessage;
 import com.centrifugal.centrifuge.android.util.DataLock;
 import com.centrifugal.centrifuge.android.util.Signing;
+import com.centrifugal.centrifuge.android.BuildConfig;
 import com.squareup.okhttp.mockwebserver.MockWebServer;
 
 import org.json.JSONException;
@@ -183,6 +183,76 @@ public class BasicTests {
         });
         SubscriptionRequest subscriptionRequest = new SubscriptionRequest("test-channel");
         centrifugo.subscribe(subscriptionRequest);
+        Assert.assertEquals("test-channel", channelSubscription.lockAndGet());
+
+        centrifugo.disconnect();
+        Assert.assertTrue("Failed to properly disconnect to centrifugo", disconnected.lockAndGet());
+    }
+
+    @Test
+    public void testSubscribeBeforeConnect() throws Exception {
+        String containerIpAddress = centrifugo.getContainerIpAddress() + ":" + centrifugo.getMappedPort(8000);
+        String centrifugoAddress = "ws://" + containerIpAddress + "/connection/websocket";
+
+        mockWebServer.setDispatcher(new TestWebapp());
+        String url = mockWebServer.url("/tokens").toString();
+
+        OkHttpClient okHttpClient = new OkHttpClient();
+
+        Request build = new Request.Builder().url(url).build();
+        Response execute = okHttpClient.newCall(build).execute();
+        String body = execute.body().string();
+        JSONObject loginObject = new JSONObject(body);
+        String userId = loginObject.optString("userId");
+        String timestamp = loginObject.optString("timestamp");
+        String token = loginObject.optString("token");
+        Centrifugo centrifugo = new Centrifugo.Builder(centrifugoAddress)
+                .setUser(new User(userId, null))
+                .setToken(new Token(token, timestamp))
+                .build();
+
+        final DataLock<Boolean> connected = new DataLock<>();
+        final DataLock<Boolean> disconnected = new DataLock<>();
+
+        centrifugo.setConnectionListener(new ConnectionListener() {
+            @Override
+            public void onWebSocketOpen() {
+            }
+
+            @Override
+            public void onConnected() {
+                connected.setData(true);
+            }
+
+            @Override
+            public void onDisconnected(final int code, final String reason, final boolean remote) {
+                disconnected.setData(!remote);
+            }
+        });
+        SubscriptionRequest subscriptionRequest = new SubscriptionRequest("test-channel");
+        centrifugo.subscribe(subscriptionRequest);
+
+        centrifugo.connect();
+        Assert.assertTrue("Failed to connect to centrifugo", connected.lockAndGet());
+
+
+        final DataLock<String> channelSubscription = new DataLock<>();
+        centrifugo.setSubscriptionListener(new SubscriptionListener() {
+            @Override
+            public void onSubscribed(final String channelName) {
+                channelSubscription.setData(channelName);
+            }
+
+            @Override
+            public void onUnsubscribed(final String channelName) {
+
+            }
+
+            @Override
+            public void onSubscriptionError(final String channelName, final String error) {
+
+            }
+        });
         Assert.assertEquals("test-channel", channelSubscription.lockAndGet());
 
         centrifugo.disconnect();

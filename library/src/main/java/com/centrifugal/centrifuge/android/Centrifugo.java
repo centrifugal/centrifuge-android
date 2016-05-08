@@ -288,6 +288,10 @@ public class Centrifugo {
     }
 
     public void subscribe(final SubscriptionRequest subscriptionRequest, @Nullable final String lastMessageId) {
+        if (state != STATE_CONNECTED) {
+            channelsToSubscribe.add(subscriptionRequest);
+            return;
+        }
         try {
             JSONObject jsonObject = new JSONObject();
             String uuid = fillSubscriptionJSON(jsonObject, subscriptionRequest, lastMessageId);

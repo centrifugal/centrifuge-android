@@ -1,6 +1,5 @@
 package com.centrifugal.centrifuge.android.it;
 
-import com.centrifugal.centrifuge.BuildConfig;
 import com.centrifugal.centrifuge.android.Centrifugo;
 import com.centrifugal.centrifuge.android.credentials.Token;
 import com.centrifugal.centrifuge.android.credentials.User;
@@ -14,6 +13,7 @@ import com.centrifugal.centrifuge.android.message.history.HistoryItem;
 import com.centrifugal.centrifuge.android.message.history.HistoryMessage;
 import com.centrifugal.centrifuge.android.util.DataLock;
 import com.centrifugal.centrifuge.android.util.Signing;
+import com.centrifugal.centrifuge.android.BuildConfig;
 import com.squareup.okhttp.mockwebserver.MockWebServer;
 
 import org.json.JSONException;

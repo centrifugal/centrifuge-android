@@ -29,7 +29,7 @@ import javax.annotation.Nullable;
  * */
 public class DataMessage extends DownstreamMessage {
 
-    private JSONObject data;
+    private String data;
 
     @Nonnull
     private String UUID;
@@ -60,7 +60,11 @@ public class DataMessage extends DownstreamMessage {
     }
 
     private void init(@Nonnull final JSONObject body) {
-        data = body.optJSONObject("data");
+        Object dataObj = body.opt("data");
+        if (dataObj != null) {
+            data = dataObj.toString();
+        }
+
         UUID = body.optString("uid");
         channel = body.optString("channel");
         @Nullable JSONObject infoJSON = body.optJSONObject("info");
@@ -79,7 +83,7 @@ public class DataMessage extends DownstreamMessage {
         timestamp = new Date(Long.valueOf(timestampString));
     }
 
-    public JSONObject getData() {
+    public String getData() {
         return data;
     }
 

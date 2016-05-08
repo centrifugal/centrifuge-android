@@ -1,6 +1,6 @@
 package com.centrifugal.centrifuge.android.it;
 
-import com.centrifugal.centrifuge.BuildConfig;
+import com.centrifugal.centrifuge.android.BuildConfig;
 import com.centrifugal.centrifuge.android.Centrifugo;
 import com.centrifugal.centrifuge.android.credentials.Token;
 import com.centrifugal.centrifuge.android.credentials.User;
