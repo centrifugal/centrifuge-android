@@ -33,6 +33,5 @@
     <orderEntry type="library" exported="" name="junit-4.10" level="project" />
     <orderEntry type="library" exported="" name="hamcrest-core-1.1" level="project" />
     <orderEntry type="library" exported="" name="testcontainers-1.0.5" level="project" />
-    <orderEntry type="library" exported="" name="testwebapp.testwebapp" level="project" />
   </component>
 </module>

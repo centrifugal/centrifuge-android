@@ -15,7 +15,7 @@ import com.centrifugal.centrifuge.android.message.DataMessage;
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  * You should have received a copy of the GNU General Public License
- * along with ACentrifugo.  If not, see <http://www.gnu.org/licenses/>.
+ * along with ACentrifugo.  If not, see See <a href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>.
  *
  * Created by Semyon on 01.05.2016.
  * */

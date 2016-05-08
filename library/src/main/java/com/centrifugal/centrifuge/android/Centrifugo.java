@@ -60,7 +60,7 @@ import java.util.concurrent.Executors;
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  * You should have received a copy of the GNU General Public License
- * along with ACentrifugo.  If not, see <http://www.gnu.org/licenses/>.
+ * along with ACentrifugo.  If not, see <a href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>.
  *
  * Created by semyon on 29.04.16.
  * */
@@ -344,7 +344,10 @@ public class Centrifugo {
      * Fills JSON with subscription info
      * Derive this class and override this method to add custom fields to JSON object
      * @param jsonObject subscription message
+     * @param subscriptionRequest request for subscription
+     * @param lastMessageId id of last message
      * @throws JSONException thrown to indicate a problem with the JSON API
+     * @return uid of this command
      */
     protected String fillSubscriptionJSON(final JSONObject jsonObject, final SubscriptionRequest subscriptionRequest, @Nullable final String lastMessageId) throws JSONException {
         String uuid = UUID.randomUUID().toString();

@@ -310,6 +310,7 @@ public class PushService extends Service {
      * Fills JSON with subscription info
      * Derive this class and override this method to add custom fields to JSON object
      * @param jsonObject subscription message
+     * @param subscriptionRequest subscription request
      * @throws JSONException thrown to indicate a problem with the JSON API
      */
     protected void fillSubscriptionJSON(final JSONObject jsonObject, final SubscriptionRequest subscriptionRequest) throws JSONException {

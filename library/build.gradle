@@ -11,9 +11,9 @@ android {
 
     defaultConfig {
         minSdkVersion 14
-        targetSdkVersion 21
-        versionCode 6
-        versionName "0.33-SNAPSHOT"
+        targetSdkVersion 21//because robolectric doesnt support API level 23
+        versionCode 9
+        versionName "0.36-SNAPSHOT"
     }
     buildTypes {
         release {

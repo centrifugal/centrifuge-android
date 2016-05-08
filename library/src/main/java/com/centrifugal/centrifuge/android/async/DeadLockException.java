@@ -13,7 +13,7 @@ package com.centrifugal.centrifuge.android.async;
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  * You should have received a copy of the GNU General Public License
- * along with ACentrifugo.  If not, see <http://www.gnu.org/licenses/>.
+ * along with ACentrifugo.  If not, see <a href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>.
  *
  * Created by Semyon on 02.05.2016.
  * */
