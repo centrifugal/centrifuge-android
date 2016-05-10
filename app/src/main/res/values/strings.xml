@@ -1,4 +1,4 @@
 <resources>
-    <string name="app_name">ACentrifugo</string>
+    <string name="app_name">Centrifuge-android Test App</string>
     <string name="title_activity_main">MainActivity</string>
 </resources>

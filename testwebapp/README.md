@@ -1,6 +1,6 @@
 # centrifuge-android test web application
 This simple web application is intended to be used with
-test android application ([`:app`](https://github.com/SammyVimes/ACentrifugo/tree/master/app))
+test android application ([`:app`](https://github.com/Centrifugal/centrifuge-android/tree/master/app))
 
 ### Usage
 Build and run with this params:

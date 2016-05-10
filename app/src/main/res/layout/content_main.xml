@@ -1,61 +1,61 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     android:id="@+id/main"
-    android:orientation="vertical"
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    android:paddingBottom="@dimen/activity_vertical_margin"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="com.centrifugal.centrifuge.test.MainActivity">
 
     <EditText
         android:id="@+id/address"
-        android:hint="Web application address"
-        android:text="192.168.31.203:1337"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:hint="Web application address"
+        android:text="192.168.31.203:1337"/>
 
     <EditText
         android:id="@+id/user_name"
-        android:hint="User name"
-        android:text="User1337"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:hint="User name"
+        android:text="User1337"/>
 
     <LinearLayout
-        android:weightSum="1"
-        android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="1">
 
         <EditText
-            android:layout_weight="1"
             android:id="@+id/channel_name"
-            android:hint="Channel name"
-            android:text="Test-channel"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Channel name"
+            android:text="Test-channel"/>
 
         <Button
             android:id="@+id/subscribe"
-            android:text="Subscribe"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:text="Subscribe"/>
 
     </LinearLayout>
 
     <Button
         android:id="@+id/login"
-        android:text="Login"
-        android:layout_gravity="center_horizontal"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="Login"/>
 
     <ListView
         android:id="@+id/messages"
