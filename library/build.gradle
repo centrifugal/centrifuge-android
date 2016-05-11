@@ -13,7 +13,7 @@ android {
         minSdkVersion 14
         targetSdkVersion 21//because robolectric doesnt support API level 23
         versionCode 9
-        versionName "0.36-SNAPSHOT"
+        versionName "0.36"
     }
     buildTypes {
         release {

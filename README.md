@@ -5,12 +5,12 @@ Centrifugo android client
 </br>
 add
 ```
-maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+maven { url "https://oss.sonatype.org/content/repositories/releases/" }
 ```    
 to <b>repositories</b>
 and 
 ```
-compile 'com.github.centrifugal:centrifuge-android:0.36-SNAPSHOT'
+compile 'com.github.centrifugal:centrifuge-android:0.36'
 ```
 to <b>dependencies</b> in your <b>build.gradle</b>    
 
@@ -20,7 +20,7 @@ apply plugin: 'com.android.application'
 
 repositories {
     mavenCentral()
-    maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+    maven { url "https://oss.sonatype.org/content/repositories/releases/" }
 }
 
 
@@ -46,7 +46,7 @@ android {
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     testCompile 'junit:junit:4.12'
-    compile 'com.github.centrifugal:centrifuge-android:0.36-SNAPSHOT'
+    compile 'com.github.centrifugal:centrifuge-android:0.36'
 }
 
 ```
