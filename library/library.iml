@@ -111,8 +111,8 @@
     <orderEntry type="library" exported="" scope="TEST" name="okio-1.6.0" level="project" />
     <orderEntry type="library" exported="" scope="TEST" name="bcprov-jdk15on-1.50" level="project" />
     <orderEntry type="library" exported="" scope="TEST" name="ant-1.8.0" level="project" />
-    <orderEntry type="library" exported="" scope="TEST" name="okhttp-ws-2.7.5" level="project" />
     <orderEntry type="library" exported="" name="jsr305-3.0.1" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="okhttp-ws-2.7.5" level="project" />
     <orderEntry type="library" exported="" scope="TEST" name="accessibility-test-framework-1.0" level="project" />
     <orderEntry type="library" exported="" scope="TEST" name="ant-launcher-1.8.0" level="project" />
     <orderEntry type="library" exported="" scope="TEST" name="asm-commons-5.0.1" level="project" />

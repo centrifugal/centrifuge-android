@@ -3,6 +3,8 @@ package com.centrifugal.centrifuge.android;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
 
 import android.util.Log;
 
@@ -25,6 +27,9 @@ import com.centrifugal.centrifuge.android.message.presence.PresenceMessage;
 import com.centrifugal.centrifuge.android.subscription.ActiveSubscription;
 import com.centrifugal.centrifuge.android.subscription.SubscriptionRequest;
 
+import org.java_websocket.WebSocket;
+import org.java_websocket.WebSocketAdapter;
+import org.java_websocket.client.DefaultSSLWebSocketClientFactory;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft;
 import org.java_websocket.drafts.Draft_17;
@@ -35,8 +40,14 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
+import java.io.IOException;
+import java.net.Socket;
 import java.net.URI;
+import java.nio.channels.ByteChannel;
 import java.nio.channels.NotYetConnectedException;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.SocketChannel;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -116,7 +127,21 @@ public class Centrifugo {
     public void connect() {
         if (client == null || (state != STATE_CONNECTED && state != STATE_CONNECTING)) {
             this.state = STATE_CONNECTING;
-            client = new Client(URI.create(wsURI), new Draft_17());
+            final URI uri = URI.create(wsURI);
+            client = new Client(uri, new Draft_17());
+            if (uri.getScheme().equals("wss")) {
+                SSLContext sslContext = null;
+                try {
+                    sslContext = SSLContext.getDefault();
+                } catch (NoSuchAlgorithmException e) {
+                    Log.e(TAG, "Failed to start connection: " + e.getMessage());
+                    if (connectionListener != null) {
+                        connectionListener.onDisconnected(-1, e.getMessage(), true);
+                    }
+                    return;
+                }
+                client.setWebSocketFactory(new DefaultSSLWebSocketClientFactory(sslContext));
+            }
             client.start();
         }
     }
@@ -420,6 +445,14 @@ public class Centrifugo {
             DownstreamMessageListener listener = commandListeners.get(uuid);
             if (listener != null) {
                 listener.onDownstreamMessage(historyMessage);
+            }
+            return;
+        }
+        if (method.equals("disconnect")) {
+            if (connectionListener != null) {
+                DownstreamMessage downstreamMessage = new DownstreamMessage(message);
+                final String reason = downstreamMessage.getBody().optString("reason");
+                connectionListener.onDisconnected(-1, reason, true);
             }
             return;
         }
