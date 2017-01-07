@@ -41,5 +41,5 @@ notifications:
   email: true
 
 script:
-  - sudo docker -d -H unix:///var/run/docker.sock -H tcp://0.0.0.0:2376
+  - sudo docker daemon -H unix:///var/run/docker.sock -H tcp://0.0.0.0:2376
   - ./gradlew :library:clean :library:test
