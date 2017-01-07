@@ -1,6 +1,12 @@
+sudo: required
 language: android
 jdk:
   - oraclejdk8
+env:
+  global:
+    DOCKER_TLS_VERIFY: 0
+services:
+  - docker
 android:
   components:
   - platform-tools
