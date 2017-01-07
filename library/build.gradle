@@ -44,12 +44,12 @@ dependencies {
 
 
 
-apply from: '../gradle-mvn-push.gradle'
-
-afterEvaluate { project ->
-    android.libraryVariants.all { variant ->
-        tasks.androidJavadocs.doFirst {
-            classpath += files(variant.javaCompile.classpath.files)
-        }
-    }
-}
+//apply from: '../gradle-mvn-push.gradle'
+//
+//afterEvaluate { project ->
+//    android.libraryVariants.all { variant ->
+//        tasks.androidJavadocs.doFirst {
+//            classpath += files(variant.javaCompile.classpath.files)
+//        }
+//    }
+//}
