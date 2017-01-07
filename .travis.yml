@@ -7,11 +7,12 @@ jdk:
 env:
   global:
   - DOCKER_TLS_VERIFY: 0
-  - DOCKER_HOST: http://localhost:2375
+  - DOCKER_HOST: http://127.0.0.1:2375
 
 before_cache:
   - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
   - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+  - cat /home/travis/build/centrifugal/centrifuge-android/library/build/reports/tests/debug/index.html
 cache:
   directories:
     - $HOME/.gradle/caches/
