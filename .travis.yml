@@ -23,7 +23,6 @@ before_install:
   - sudo ./extra/install-android-sdk.sh
   - ps aux | grep docker
   - chmod +x gradlew
-  - sudo docker daemon -H tcp://0.0.0.0:2376
 
 notifications:
   email: true
