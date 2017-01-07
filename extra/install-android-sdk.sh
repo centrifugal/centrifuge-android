@@ -8,7 +8,7 @@ export ANDROID_HOME="/sdk"
 export PATH="$PATH:${ANDROID_HOME}/tools"
 export DEBIAN_FRONTEND=noninteractive
 
-apt-get -qq update && \
+sudo apt-get -qq update && \
     apt-get install -qqy --no-install-recommends \
       curl \
       html2text \

@@ -20,12 +20,11 @@ cache:
 before_install:
   - docker -v
   - chmod +x extra/install-android-sdk.sh
-  - sudo ./extra/install-android-sdk.sh
+  - ./extra/install-android-sdk.sh
   - ps aux | grep docker
   - chmod +x gradlew
   - export ANDROID_HOME="/sdk"
   - export PATH="$PATH:${ANDROID_HOME}/tools"
-  - mkdir /home/travis/.android/
 
 notifications:
   email: true
