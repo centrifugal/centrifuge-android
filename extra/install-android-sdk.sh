@@ -25,8 +25,8 @@ sudo rm -f /etc/ssl/certs/java/cacerts; \
     /var/lib/dpkg/info/ca-certificates-java.postinst configure
 
 sudo curl -s http://dl.google.com/android/repository/tools_r${VERSION_SDK_TOOLS}-linux.zip > /tools.zip && \
-    unzip /tools.zip -d /sdk && \
-    rm -v /tools.zip
+    sudo unzip /tools.zip -d /sdk && \
+    sudo rm -v /tools.zip
 
 sudo mkdir -p $ANDROID_HOME/licenses/ \
   && sudo echo "8933bad161af4178b1185d1a37fbf41ea5269c55" > $ANDROID_HOME/licenses/android-sdk-license \
