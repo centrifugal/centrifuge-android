@@ -24,9 +24,11 @@ before_install:
   - ps aux | grep docker
   - chmod +x gradlew
   - echo "$ANDROID_HOME"
-  - echo "PATH"
+  - echo "$PATH"
   - export ANDROID_HOME="/sdk"
   - export PATH="$PATH:${ANDROID_HOME}/tools"
+  - echo "$ANDROID_HOME"
+  - echo "$PATH"
 
 notifications:
   email: true
