@@ -20,7 +20,7 @@ cache:
 before_install:
   - docker -v
   - chmod +x extra/install-android-sdk.sh
-  - ./extra/install-android-sdk.sh
+  - sudo ./extra/install-android-sdk.sh
   - ps aux | grep docker
   - chmod +x gradlew
   - sudo docker daemon -H tcp://0.0.0.0:2376
