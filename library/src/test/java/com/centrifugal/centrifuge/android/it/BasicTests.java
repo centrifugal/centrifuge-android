@@ -22,7 +22,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.robolectric.RobolectricGradleTestRunner;
+import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 import org.testcontainers.containers.GenericContainer;
 
@@ -36,7 +36,7 @@ import okhttp3.Response;
  * This file is part of centrifuge-android
  * Created by semyon on 29.04.16.
  * */
-@RunWith(RobolectricGradleTestRunner.class)
+@RunWith(RobolectricTestRunner.class)
 @Config(constants = BuildConfig.class)
 public class BasicTests {
 
@@ -46,7 +46,7 @@ public class BasicTests {
 
     @Before
     public void beforeMethod() throws Exception {
-        centrifugo = new GenericContainer("samvimes/centrifugo-with-web:1.3")
+        centrifugo = new GenericContainer("samvimes/centrifugo:latest")
                         .withExposedPorts(8000);
         centrifugo.start();
         mockWebServer = new MockWebServer();

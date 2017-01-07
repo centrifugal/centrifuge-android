@@ -226,7 +226,7 @@ public class Centrifugo {
     }
 
     public void logErrorWhen(final String when, final Exception ex) {
-        Log.e(TAG, "Error occured  " + when +  ": ", ex);
+        Log.e(TAG, "Error occured  " + when + ": ", ex);
     }
 
     public void onError(final Exception ex) {

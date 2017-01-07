@@ -83,7 +83,7 @@ public class TestWebApp {
     public TestWebApp(final boolean useDocker, final int webAppPort, final String centrifugoAddress) {
         String ipAddress;
         if (useDocker) {
-            centrifugo = new GenericContainer("samvimes/centrifugo-with-web:1.3")
+            centrifugo = new GenericContainer("samvimes/centrifugo:latest")
                     .withExposedPorts(8000);
             centrifugo.start();
             ipAddress = centrifugo.getContainerIpAddress() + ":" + centrifugo.getMappedPort(8000);

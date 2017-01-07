@@ -1,0 +1,11 @@
+{
+  "web_password": "strong_password_to_log_in",
+  "web_secret": "strong_secret",
+  "watch": true,
+  "secret": "very-long-secret-key",
+  "presence": true,
+  "join_leave": true,
+  "history_size": 20,
+  "history_lifetime": 600,
+  "recover": true
+}

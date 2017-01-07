@@ -10,7 +10,7 @@ maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
 to <b>repositories</b>
 and 
 ```
-compile 'com.github.centrifugal:centrifuge-android:0.36-SNAPSHOT'
+compile 'com.github.centrifugal:centrifuge-android:0.36'
 ```
 to <b>dependencies</b> in your <b>build.gradle</b>    
 
@@ -46,7 +46,7 @@ android {
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     testCompile 'junit:junit:4.12'
-    compile 'com.github.centrifugal:centrifuge-android:0.36-SNAPSHOT'
+    compile 'com.github.centrifugal:centrifuge-android:0.36'
 }
 
 ```
