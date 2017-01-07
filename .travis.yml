@@ -30,9 +30,8 @@ cache:
 before_install:
   - chmod +x gradlew
   - echo "DOCKER_TLS_VERIFY = $DOCKER_TLS_VERIFY"
-
-install:
-  - sudo apt-get install docker
+  - sudo apt-get install docker.io
+  - docker -v
 
 licenses:
   - android-sdk-license-.+
