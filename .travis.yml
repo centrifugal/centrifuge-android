@@ -7,7 +7,8 @@ jdk:
   - oraclejdk8
 env:
   global:
-    DOCKER_TLS_VERIFY: 0
+  - DOCKER_TLS_VERIFY: 0
+  - DOCKER_HOST: http://localhost:2376
 android:
   components:
   - platform-tools
@@ -39,4 +40,6 @@ licenses:
 notifications:
   email: true
 
-script: ./gradlew :library:clean :library:test
+script:
+  - sudo dockerd -H unix:///var/run/docker.sock -H tcp://0.0.0.0:2376
+  - ./gradlew :library:clean :library:test
