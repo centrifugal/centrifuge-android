@@ -7,7 +7,7 @@ jdk:
 env:
   global:
   - DOCKER_TLS_VERIFY: 0
-  - DOCKER_HOST: http://localhost:2376
+  - DOCKER_HOST: http://localhost:2375
 
 before_cache:
   - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
@@ -28,5 +28,7 @@ notifications:
   email: true
 
 script:
+  - export ANDROID_HOME="/sdk"
+  - export PATH="$PATH:${ANDROID_HOME}/tools"
   - ps aux | grep docker
   - ./gradlew :library:clean :library:test
