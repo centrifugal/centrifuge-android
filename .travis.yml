@@ -25,8 +25,7 @@ cache:
     - $HOME/.gradle/wrapper/
 
 before_install:
-  - docker daemon --help
-  - docker daemon
+  - ps aux | grep docker
   - chmod +x gradlew
   - echo "DOCKER_TLS_VERIFY = $DOCKER_TLS_VERIFY"
   - sudo curl -fsSL https://get.docker.com/ | sh
