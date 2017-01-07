@@ -40,5 +40,7 @@ notifications:
 
 script:
   - sudo pkill docker
+  - ps aux | grep docker
+  - sudo rm -rf /var/run/docker.pid
   - sudo docker daemon -H tcp://0.0.0.0:2376
   - ./gradlew :library:clean :library:test
