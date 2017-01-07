@@ -39,7 +39,7 @@ notifications:
   email: true
 
 script:
-  - sudo pkill docker
+  - sudo kill -9 `cat /var/run/docker.pid`
   - ps aux | grep docker
   - sudo rm -rf /var/run/docker.pid
   - sudo docker daemon -H tcp://0.0.0.0:2376
