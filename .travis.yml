@@ -27,6 +27,7 @@ cache:
 
 before_install:
   - chmod +x gradlew
+  - echo "DOCKER_TLS_VERIFY = $DOCKER_TLS_VERIFY"
 
 licenses:
   - android-sdk-license-.+
