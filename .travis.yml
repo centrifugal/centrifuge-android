@@ -31,7 +31,7 @@ before_install:
   - uname -a
   - chmod +x gradlew
   - echo "DOCKER_TLS_VERIFY = $DOCKER_TLS_VERIFY"
-  - sudo apt-get install docker.io
+  - sudo curl -fsSL https://get.docker.com/ | sh
   - docker -v
 
 licenses:
