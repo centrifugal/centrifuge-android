@@ -25,6 +25,7 @@ before_install:
   - chmod +x gradlew
   - export ANDROID_HOME="/sdk"
   - export PATH="$PATH:${ANDROID_HOME}/tools"
+  - whoami
 
 notifications:
   email: true
