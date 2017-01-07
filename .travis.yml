@@ -1,6 +1,5 @@
 sudo: required
-language: android
-dist: precise
+language: java
 services:
   - docker
 jdk:
@@ -9,15 +8,6 @@ env:
   global:
   - DOCKER_TLS_VERIFY: 0
   - DOCKER_HOST: http://localhost:2376
-android:
-  components:
-  - platform-tools
-  - tools
-  - build-tools-23.0.2
-  - android-23
-  - extra-android-support
-  - extra-android-m2repository
-  - extra-google-m2repository
 
 before_cache:
   - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
@@ -29,11 +19,11 @@ cache:
 
 before_install:
   - docker -v
+  - chmod +x extra/install-android-sdk.sh
+  - ./extra/install-android-sdk.sh
+  - ps aux | grep docker
   - chmod +x gradlew
-  - echo "DOCKER_TLS_VERIFY = $DOCKER_TLS_VERIFY"
-
-licenses:
-  - android-sdk-license-.+
+  - sudo docker daemon -H tcp://0.0.0.0:2376
 
 notifications:
   email: true
