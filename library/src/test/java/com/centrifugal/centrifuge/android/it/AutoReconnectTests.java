@@ -45,8 +45,12 @@ public class AutoReconnectTests {
 
     @Before
     public void beforeMethod() throws Exception {
-        centrifugo = new GenericContainer("samvimes/centrifugo:latest")
-                .withExposedPorts(8000);
+        try {
+            centrifugo = new GenericContainer("samvimes/centrifugo:latest")
+                    .withExposedPorts(8000);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         centrifugo.start();
         mockWebServer = new MockWebServer();
         mockWebServer.start();
