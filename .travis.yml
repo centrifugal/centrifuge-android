@@ -1,6 +1,6 @@
 sudo: required
 language: android
-dist: trusty
+dist: precise
 services:
   - docker
 jdk:
@@ -29,6 +29,9 @@ cache:
 before_install:
   - chmod +x gradlew
   - echo "DOCKER_TLS_VERIFY = $DOCKER_TLS_VERIFY"
+
+install:
+  - sudo apt-get install docker
 
 licenses:
   - android-sdk-license-.+
