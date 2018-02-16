@@ -10,7 +10,6 @@ import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -92,15 +91,40 @@ public class MainActivity extends AppCompatActivity {
             address = "http://" + address;
         }
         final String user = userNameEditText.getText().toString();
-        final String channel = "updates_76b6ce932584f4f74abff7fc891afde9f50d2e50";
+        final String channel = channelEditText.getText().toString();
         final String fAddress = address;
         new Thread() {
             @Override
             public void run() {
-                String userId = "1";
-                String timestamp = "1518775099";
-                String token = "2a26aa384091da7b4fbf96ed7ff644b3def449a1cad3a1a41b0d8c4e0fb2d65b";
-                String centrifugoAddress = "ws://centrifugo.tasksamurai.com/connection/websocket";
+                OkHttpClient okHttpClient = new OkHttpClient();
+                Request build = new Request.Builder().url(Uri.parse(fAddress + "/token?userId=" + user).toString()).build();
+                Response execute = null;
+                try {
+                    execute = okHttpClient.newCall(build).execute();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    error("failed to execute HTTP request: " + e.getMessage());
+                    return;
+                }
+                String body = null;
+                try {
+                    body = execute.body().string();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    error("failed to parse HTTP response: " + e.getMessage());
+                }
+                JSONObject loginObject = null;
+                try {
+                    loginObject = new JSONObject(body);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    error("failed to parse json: " + e.getMessage());
+                    return;
+                }
+                String userId = loginObject.optString("userId");
+                String timestamp = loginObject.optString("timestamp");
+                String token = loginObject.optString("token");
+                String centrifugoAddress = loginObject.optString("centrifugoWS");
                 centrifugo = new Centrifugo.Builder(centrifugoAddress)
                         .setUser(new User(userId, null))
                         .setToken(new Token(token, timestamp))
@@ -142,7 +166,6 @@ public class MainActivity extends AppCompatActivity {
                 centrifugo.setDataMessageListener(new DataMessageListener() {
                     @Override
                     public void onNewDataMessage(final DataMessage message) {
-                        Log.e("message",message.getBody().toString());
                         showMessage(message);
                     }
                 });
