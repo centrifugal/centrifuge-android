@@ -64,10 +64,6 @@ public class DataMessage extends DownstreamMessage {
             JSONObject channelInfo = infoJSON.optJSONObject("channel_info");
             info = new Info(user, defaultInfo, channelInfo);
         }
-
-
-        String timestampString = body.optString("timestamp");
-        timestamp = new Date(Long.valueOf(timestampString));
     }
 
     public String getData() {
